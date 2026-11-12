@@ -46,9 +46,10 @@ The derivation is a streaming, byte-level copy of the original file in which **o
 | C20 tide-free (derived) | `-4.841653211714038E-04` |
 | Change | `+4.173576E-09` |
 
-The formula and its constant are the ones used for the benchmark (see `../results/csv.md`). The magnitude
-(4.1736e-9) is the usual zero-tide/tide-free C20 shift; the sign follows the benchmark definition. The conversion
-was not re-derived here.
+The formula and its constant are the ones used for the benchmark (see `../results/csv.md`). The IERS Conventions
+(2010), Eqs. (6.8c) and (6.14), give the same shift: A0 H0 k20 with A0 = 4.4228e-8 m^-1, H0 = -0.31460 m and
+k20 = 0.3, and state that the zero-tide minus tide-free C20 of EGM2008 is -4.1736e-9 (so tide-free = zero-tide +
+4.1736e-9, the direction used here).
 
 Verification: `diff` between the original and the derived file reports exactly three differences: the `tide_system`
 line (replaced), the inserted comment line, and the C20 `gfc 2 0` line (value replaced, the other fields of that line

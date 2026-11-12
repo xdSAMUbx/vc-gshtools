@@ -67,6 +67,7 @@ needs third-party tools that this repository does not distribute (see [NOTICE](N
 ## Documentation
 
 - [docs/README.md](docs/README.md): index of the documentation of the public modules.
+- [examples/README.md](examples/README.md): usage examples of the public modules.
 - [benchmark/shs/results/Summary.md](benchmark/shs/results/Summary.md): benchmark question, method and results.
 
 ## Validation
@@ -99,6 +100,7 @@ otherwise.
 - Gruber, C., Abrykosov, O. (2016). On computation and use of Fourier coefficients for associated Legendre functions. *Journal of Geodesy*. doi:10.1007/s00190-016-0891-z
 - Holmes, S. A., Featherstone, W. E. (2002). A unified approach to the Clenshaw summation and the recursive computation of very high degree and order normalised associated Legendre functions. *Journal of Geodesy* 76, 279-299. doi:10.1007/s00190-002-0216-2
 - Jekeli, C., Lee, J. K., Kwon, J. H. (2007). On the computation and approximation of ultra-high-degree spherical harmonic series. *Journal of Geodesy* 81, 603-615. doi:10.1007/s00190-006-0123-z
+- Smith, J. M., Olver, F. W. J., Lozier, D. W. (1981). Extended-range arithmetic and normalized Legendre polynomials. *ACM Transactions on Mathematical Software* 7(1), 93-105.
 - Wittwer, T., Klees, R., Seitz, K., Heck, B. (2008). Ultra-high degree spherical harmonic analysis and synthesis using extended-range arithmetic. *Journal of Geodesy* 82, 223-229. doi:10.1007/s00190-007-0172-y
 
 **Functionals of the geopotential and reference programs**
@@ -112,21 +114,22 @@ otherwise.
 - Bowring, B. R. (1976). Transformation from spatial to geographical coordinates. *Survey Review* 23(181), 323-327.
 - Moritz, H. (2000). Geodetic Reference System 1980. *Journal of Geodesy* 74, 128-133.
 - Tscherning, C. C., Rapp, R. H. (1974). *Closed covariance expressions for gravity anomalies, geoid undulations, and deflections of the vertical implied by anomaly degree variance models*. Report No. 208, Department of Geodetic Science, The Ohio State University.
-- Makinen, J. (2021). The permanent tide and the International Height Reference Frame IHRF. arXiv:2006.08440 (version 3).
+- Makinen, J. (2021). The permanent tide and the International Height Reference Frame IHRF. *Journal of Geodesy* 95, 106. doi:10.1007/s00190-021-01541-5 (arXiv:2006.08440).
+- Petit, G., Luzum, B. (eds.) (2010). *IERS Conventions (2010)*, IERS Technical Note 36. Verlag des Bundesamts fuer Kartographie und Geodaesie, Frankfurt am Main.
 
 **Gravity field models used in the benchmarks**
 
 - Pavlis, N. K., Holmes, S. A., Kenyon, S. C., Factor, J. K. (2012). The development and evaluation of the Earth Gravitational Model 2008 (EGM2008). *Journal of Geophysical Research* 117, B04406. doi:10.1029/2011JB008916
+- Barthelmes, F. (2013). *Definition of functionals of the geopotential and their calculation from spherical harmonic models*. Scientific Technical Report STR09/02 (revised edition, January 2013), GFZ German Research Centre for Geosciences, Potsdam. doi:10.2312/GFZ.b103-0902-26
+- Petrovskaya, M. S., Vershkov, A. N. (2006). Non-singular expressions for the gravity gradients in the local north-oriented and orbital reference frames. *Journal of Geodesy* 80, 117-127. doi:10.1007/s00190-006-0031-2
 - Zingerle, P., Pail, R., Gruber, T., Oikonomidou, X. (2019). The experimental gravity field model XGM2019e. GFZ Data Services. doi:10.5880/ICGEM.2019.007
 
-**Cited in the code, entry copied from the reference list of a paper that was read (the paper itself was not read)**
+**Cited in the code; the paper itself was not read, the entry was copied from the reference list of a paper that was read**
 
-- Smith, J. M., Olver, F. W. J., Lozier, D. W. (1981). Extended-range arithmetic and normalized Legendre polynomials. *ACM Transactions on Mathematical Software* 7, 93-105. (From Wittwer et al. 2008.)
-- Lozier, D. W., Smith, J. M. (1981). Algorithm 567: Extended-range arithmetic and normalized Legendre polynomials. *ACM Transactions on Mathematical Software* 7, 141-146. (From Wittwer et al. 2008.)
+- Lozier, D. W., Smith, J. M. (1981). Algorithm 567: Extended-range arithmetic and normalized Legendre polynomials. *ACM Transactions on Mathematical Software* 7(1), 141-146. (From the reference list of Smith et al. 1981.)
 - Driscoll, J. R., Healy, D. (1994). Computing Fourier transforms and convolutions on the 2-sphere. *Advances in Applied Mathematics* 15, 202-250. (From Wittwer et al. 2008.)
 - Cartwright, D. E., Tayler, R. J. (1971). New computations of the tide-generating potential. *Geophysical Journal of the Royal Astronomical Society* 23, 45-74. (From Makinen 2021.)
 - Cartwright, D. E., Edden, A. C. (1973). Corrected tables of tidal harmonics. *Geophysical Journal of the Royal Astronomical Society* 33, 253-264. (From Makinen 2021.)
-- Petit, G., Luzum, B. (eds.) (2010). *IERS Conventions (2010)*, IERS Technical Note 36. Verlag des Bundesamts fuer Kartographie und Geodaesie, Frankfurt am Main. (From Makinen 2021.)
 
 ### What was checked against the papers
 
@@ -135,7 +138,11 @@ otherwise.
 - Wittwer et al. (2008), Eq. (3): the digit-loss bound `digit_loss_bound`; the paper attributes it to Smith, Olver and Lozier (1981).
 - Jekeli et al. (2007), Eq. (14): the truncation rule m <= L sin(theta) + mu used for the polar optimisation. The value of mu (`max(100, 0.01 nmax)`) is a choice of this project, not from the paper.
 - Bowring (1976), Eq. (4): the closed-form first latitude tan(phi) = (Z + e'^2 b sin^3 u)/(p - e^2 a cos^3 u) with tan u = (a/b)(Z/p), used in `ecef_to_geodetic`. The paper gives the formula as one iteration-free step; the code then iterates.
-- Makinen (2021): H0 = -0.31460 m (Eq. 16), k20 = 0.30190 and the nominal k = 0.3. The constant A0 = 4.4228e-8 used in `tides.hpp` is not written in that paper under that symbol and was **not** checked.
+- Makinen (2021): H0 = -0.31460 m (Eq. 16), k20 = 0.30190 and the nominal k = 0.3. Journal version (J. Geod. 95, 106) and arXiv v3 agree on these values.
+- IERS Conventions (2010): A0 = 4.4228e-8 m^-1 (Eq. 6.8c), H0 = -0.31460 m, permanent shift of C20 = A0 H0 k20 (Eq. 6.14); the zero-tide minus tide-free C20 of EGM2008 is -4.1736e-9, so tide-free = zero-tide + 4.1736e-9, the shift (and sign) used to build the tide-free XGM2019e file of the benchmark.
+- Smith, Olver and Lozier (1981): the extended-range arithmetic (separate integer exponent per number) used by the `era` recurrence.
+- Petrovskaya and Vershkov (2006) and Bucha and Janak (2013): GrafLab uses a slightly modified form of the non-singular gravity-gradient expressions.
+- Barthelmes (2013): the definitions of the functionals (read for the bibliographic entry only; the formulas are implemented from Bucha and Janak 2019).
 - Bucha and Janak (2013, 2019): the definitions of the functionals; the results are compared with GrafLab 2.1.4 in `benchmark/meridian` and `benchmark/shs`.
 
 ## License and third-party software

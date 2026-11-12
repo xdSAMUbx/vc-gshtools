@@ -3,9 +3,10 @@
 // in the comments below refers to the page numbering of that document.
 // Local frame (LNOF): x north, y west, z up. Latitude: spherical (geocentric), in radians. Units: SI, with
 // the angle-valued functionals (ξ, η, Θ) in radians.
-// Bibliography (full entries listed in specification §11): Bucha & Janák (2013), Computers & Geosciences 56,
+// Bibliography: Bucha & Janák (2013), Computers & Geosciences 56,
 // 186-196 (GrafLab software); Barthelmes (2013), GFZ STR09/02 (definition of the functionals); Petrovskaya &
-// Vershkov (2006), J. Geodesy 80, 117-127 (non-singular gravity-gradient expressions, the form GrafLab uses);
+// Vershkov (2006), J. Geodesy 80, 117-127 (non-singular gravity-gradient expressions; GrafLab uses a slightly
+// modified form of them, Bucha & Janák 2013);
 // Moritz (2000), J. Geodesy 74, 128-133 (GRS80 reference system).
 #pragma once
 #include <map>

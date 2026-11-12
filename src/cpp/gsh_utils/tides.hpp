@@ -10,14 +10,15 @@
 //
 // Sources (see the comment of each function in tides.cpp for the formula it implements):
 //   - Tide systems, IHRF conventions and conversion formulas: Makinen, J. (2021), "The permanent tide and the
-//     International Height Reference Frame IHRF", arXiv:2006.08440 (v3); IAG Resolution No. 1 of 2015.
+//     International Height Reference Frame IHRF", Journal of Geodesy 95, 106 (arXiv:2006.08440); IAG Resolution No. 1 of 2015.
 //   - IERS Conventions (2010), IERS Technical Note 36 (Petit and Luzum, eds.): the zero-tide tidal coefficients.
 //   - GRS80 constants (gamma_e, k, e^2): Moritz, H. (2000), "Geodetic Reference System 1980",
 //     Journal of Geodesy 74, 128-133.
 //   - EGM2008 constants (GM, R): values of the header of the EGM2008 .gfc file (Pavlis et al. 2012, JGR 117, B04406).
 //   - H0 = -0.31460 m (height of the permanent tide) is Eq. (16) of Makinen (2021), from Cartwright and Tayler (1971)
-//     and Cartwright and Edden (1973). A0 = 4.4228e-8 is the amplitude constant of the IERS Conventions (2010); it was
-//     not checked against Makinen (2021), which writes the same potential with other symbols.
+//     and Cartwright and Edden (1973). A0 = 4.4228e-8 m^-1 is Eq. (6.8c) of the IERS Conventions (2010), and the
+//     permanent shift of C20 is A0 H0 k20 (Eq. 6.14); the same chapter gives -4.1736e-9 as the zero-tide minus
+//     tide-free difference of C20 for EGM2008.
 //   - k20 = 0.3 is the default degree-2 Love number (the nominal value of Makinen 2021); the same paper uses
 //     k20 = 0.30190 for the conventional IERS value. The default is kept at 0.3 and can be overridden per call.
 #pragma once
