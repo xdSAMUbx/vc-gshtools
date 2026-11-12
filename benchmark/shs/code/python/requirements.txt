@@ -1,0 +1,7 @@
+# Python packages imported by the benchmark scripts (run_pyshtools.py, run_pyharm.py, shs_common.py,
+# consolidate.py, compare.py). Python 3.12. Versions as used for the benchmark runs.
+# Install into a venv:  python -m venv .venv  &&  .venv\Scripts\python.exe -m pip install -r benchmark\shs\code\python\requirements.txt
+numpy==2.5.4
+matplotlib==3.11.2
+pyshtools==4.14.1
+pyharm==0.4.11

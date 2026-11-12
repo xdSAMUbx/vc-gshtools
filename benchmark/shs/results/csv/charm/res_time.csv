@@ -1,0 +1,9 @@
+engine,recurrence,set,threads,parallel_mode,n_repeats,wall_s_median,wall_s_min,wall_s_max,wall_ms_median,cpu_s_median,load_s_median,notes
+pyharm,native,colorado,1,library,3,3.9579,3.9542,4.3126,3957.9,3.7969,6.956,pyharm 0.4.11 shs.point + point_grad1 (one batched call); OMP_NUM_THREADS set before import
+pyharm,native,colorado,12,library,3,0.6021,0.5948,0.8223,602.1,6.7031,7.423,pyharm 0.4.11 shs.point + point_grad1 (one batched call); OMP_NUM_THREADS set before import
+pyharm,native,latsweep,1,library,3,3.7548,3.5772,3.8661,3754.8,3.4844,7.534,pyharm 0.4.11 shs.point + point_grad1 (one batched call); OMP_NUM_THREADS set before import
+pyharm,native,latsweep,12,library,3,0.5450,0.5044,1.2818,545.0,5.6094,7.156,pyharm 0.4.11 shs.point + point_grad1 (one batched call); OMP_NUM_THREADS set before import
+charm,native-charm,colorado,1,library,3,8.2853,8.2575,8.4359,8285.3,8.0938,5.484,"CHarm 0.4.11 C driver, one batched call (--parallel charm); wall = synthesis only; load excluded"
+charm,native-charm,colorado,12,library,3,1.4103,1.3880,1.4426,1410.3,13.8906,5.560,"CHarm 0.4.11 C driver, one batched call (--parallel charm); wall = synthesis only; load excluded"
+charm,native-charm,latsweep,1,library,3,7.9969,7.9544,8.2368,7996.9,7.7969,5.328,"CHarm 0.4.11 C driver, one batched call (--parallel charm); wall = synthesis only; load excluded"
+charm,native-charm,latsweep,12,library,3,1.1395,1.0773,1.1669,1139.5,11.4375,5.450,"CHarm 0.4.11 C driver, one batched call (--parallel charm); wall = synthesis only; load excluded"

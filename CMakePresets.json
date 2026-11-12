@@ -1,0 +1,40 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/build/vcpkg_installed",
+        "VCPKG_MANIFEST_FEATURES": "tests",
+        "BUILD_TESTING": "ON",
+        "GSH_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "msvc",
+      "displayName": "MSVC Release",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "cl.exe" }
+    },
+    {
+      "name": "clang",
+      "displayName": "clang-cl Release",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "clang-cl.exe" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "msvc", "configurePreset": "msvc" },
+    { "name": "clang", "configurePreset": "clang" }
+  ],
+  "testPresets": [
+    { "name": "msvc", "configurePreset": "msvc", "output": { "outputOnFailure": true } },
+    { "name": "clang", "configurePreset": "clang", "output": { "outputOnFailure": true } }
+  ]
+}

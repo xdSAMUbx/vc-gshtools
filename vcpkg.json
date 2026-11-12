@@ -1,0 +1,16 @@
+{
+  "name": "vc-gshtools",
+  "version": "2.0.0",
+  "description": "Vibe-Coded Geodetic Spherical Harmonic Tools",
+  "dependencies": [
+    { "name": "fftw3", "features": ["avx2"] },
+    { "name": "eigen3" }
+  ],
+  "features": {
+    "tests": {
+      "description": "Unit tests",
+      "dependencies": ["gtest"]
+    }
+  },
+  "builtin-baseline": "8cc2c328d01d27914329cfc097abace97310bf39"
+}

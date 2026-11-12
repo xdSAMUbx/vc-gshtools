@@ -1,0 +1,5 @@
+engine,recurrence,set,threads,parallel_mode,n_repeats,wall_s_median,wall_s_min,wall_s_max,wall_ms_median,cpu_s_median,load_s_median,notes
+pyshtools,native,colorado,1,none,3,241.2722,229.0378,258.2413,241272.2,234.5000,10.798,"pyshtools 4.14.1 point routines, serial (1 thread); V needs one radius-scaled coefficient copy per distinct radius (inside the timed block)"
+pyshtools,native,latsweep,1,none,3,125.8524,125.2471,128.5970,125852.4,123.0781,9.971,"pyshtools 4.14.1 point routines, serial (1 thread); V needs one radius-scaled coefficient copy per distinct radius (inside the timed block)"
+shtools,native,colorado,1,none,3,61.5650,61.3410,62.4670,61565.0,60.5000,19.898,"SHTOOLS 4.14.1 Fortran driver, serial loop (1 thread); wall = synthesis only; model load excluded"
+shtools,native,latsweep,1,none,3,39.1420,38.7870,39.3370,39142.0,38.3438,18.143,"SHTOOLS 4.14.1 Fortran driver, serial loop (1 thread); wall = synthesis only; model load excluded"

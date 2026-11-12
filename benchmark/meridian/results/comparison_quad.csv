@@ -1,0 +1,33 @@
+variant,functional,engine,max_abs,norm,lat_of_max,rms
+Position: exact decimal latitude,dg,gsh,6.6107872214588026e-16,3.9756677840421869e-13,75,6.0790481209348587e-16
+Position: exact decimal latitude,dg,GrafLab era,9.2384270806294966e-14,5.5559066854335431e-11,35,2.0865694116267842e-14
+Position: exact decimal latitude,dg,GrafLab msfc,4.4417111793606211e-14,2.6712050244913628e-11,42,1.6734653010840725e-14
+Position: exact decimal latitude,dg,GrafLab sfc,6.6467024418446173e-06,0.0039972668735093484,62,8.1797512546228879e-07
+Position: exact decimal latitude,V_xz,gsh,3.5144836275846763e-20,5.8859464884594206e-13,-89,4.2369692398318684e-21
+Position: exact decimal latitude,V_xz,GrafLab era,2.791689072432778e-19,4.6754329323903923e-12,90,2.7637920139149659e-20
+Position: exact decimal latitude,V_xz,GrafLab msfc,8.4664830826946318e-20,1.4179399209332894e-12,90,1.9285614857038336e-20
+Position: exact decimal latitude,V_xz,GrafLab sfc,6.2447312974024471e-10,0.010458479294888391,69,9.5943623602099622e-11
+Position: exact decimal latitude,V_xx (control),gsh,2.6046263128069735e-20,1.6397597456139597e-14,89,4.260582262972799e-21
+Position: exact decimal latitude,V_xx (control),GrafLab era,1.1837285437878847e-19,7.4522414455138488e-14,43,1.8045695004317091e-20
+Position: exact decimal latitude,V_xx (control),GrafLab msfc,1.1752582143153417e-19,7.3989159253312819e-14,43,1.7976025267269422e-20
+Position: exact decimal latitude,V_xx (control),GrafLab sfc,4.4453998288572639e-10,0.0002798630904048437,62,4.864686904103474e-11
+Position: exact decimal latitude,V_zz (control),gsh,2.3716922523120409e-20,7.5318047071439912e-15,15,7.6824090438900583e-21
+Position: exact decimal latitude,V_zz (control),GrafLab era,3.0450834453792097e-19,9.6702992579223743e-14,90,3.5753866475908611e-20
+Position: exact decimal latitude,V_zz (control),GrafLab msfc,1.6517142471458857e-19,5.2453639924752793e-14,43,2.8642923220425332e-20
+Position: exact decimal latitude,V_zz (control),GrafLab sfc,2.2255953009185621e-09,0.00070678432867142982,62,2.7293598843214999e-10
+Position: latitude as the double radian used by the engines,dg,gsh,6.6308449616497844e-16,3.9877303280065589e-13,75,6.0794939631617444e-16
+Position: latitude as the double radian used by the engines,dg,GrafLab era,9.2373916675547729e-14,5.5552839973532168e-11,35,2.0865440092244561e-14
+Position: latitude as the double radian used by the engines,dg,GrafLab msfc,4.4416662866144166e-14,2.6711780263988732e-11,42,1.6734810927409146e-14
+Position: latitude as the double radian used by the engines,dg,GrafLab sfc,6.6467024418436957e-06,0.0039972668735087915,62,8.1797512546247969e-07
+Position: latitude as the double radian used by the engines,V_xz,gsh,3.5302000592231839e-20,5.9122678731678945e-13,-89,4.2714675483425658e-21
+Position: latitude as the double radian used by the engines,V_xz,GrafLab era,2.791689072432778e-19,4.6754329323902809e-12,90,2.7617121636790175e-20
+Position: latitude as the double radian used by the engines,V_xz,GrafLab msfc,8.4664830826946318e-20,1.4179399209332554e-12,90,1.9249981097235178e-20
+Position: latitude as the double radian used by the engines,V_xz,GrafLab sfc,6.2447312973834385e-10,0.010458479294856306,69,9.5943623602024749e-11
+Position: latitude as the double radian used by the engines,V_xx (control),gsh,2.7105054312137611e-20,1.7064166458421691e-14,89,4.2783022496982767e-21
+Position: latitude as the double radian used by the engines,V_xx (control),GrafLab era,1.1964340379966992e-19,7.5322297257877e-14,43,1.8002609176269871e-20
+Position: latitude as the double radian used by the engines,V_xx (control),GrafLab msfc,1.1879637085241562e-19,7.4789042056051317e-14,43,1.7919090711885412e-20
+Position: latitude as the double radian used by the engines,V_xx (control),GrafLab sfc,4.4453998288572639e-10,0.00027986309040484365,62,4.8646869041027347e-11
+Position: latitude as the double radian used by the engines,V_zz (control),gsh,2.414043899674756e-20,7.6663012197715622e-15,15,7.7642063296692372e-21
+Position: latitude as the double radian used by the engines,V_zz (control),GrafLab era,3.0450834453792097e-19,9.6702992579223743e-14,90,3.5675217437426815e-20
+Position: latitude as the double radian used by the engines,V_zz (control),GrafLab msfc,1.6601845766184287e-19,5.2722632950007935e-14,43,2.8543056429415468e-20
+Position: latitude as the double radian used by the engines,V_zz (control),GrafLab sfc,2.2255953009185621e-09,0.00070678432867142982,62,2.7293598843218086e-10

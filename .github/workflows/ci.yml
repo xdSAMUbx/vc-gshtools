@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    name: repository hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if private, excluded or oversized files are present
+        run: |
+          set -u
+          fail=0
+          for p in tools references output data build benchmarks; do
+            if [ -e "$p" ]; then echo "forbidden top-level path: $p"; fail=1; fi
+          done
+          if find . -path ./.git -prune -o -type f -name '*.gfc' -print | grep -q .; then
+            echo "uncompressed model (*.gfc) present:"; find . -path ./.git -prune -o -type f -name '*.gfc' -print; fail=1
+          fi
+          if find . -path ./.git -prune -o -type f -size +90M -print | grep -q .; then
+            echo "file larger than 90 MiB:"; find . -path ./.git -prune -o -type f -size +90M -print; fail=1
+          fi
+          exit $fail
+
+  build-test:
+    name: build and test (${{ matrix.preset }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [msvc, clang]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use the runner's vcpkg
+        shell: pwsh
+        run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+
+      - name: Load the MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Check tools
+        shell: pwsh
+        run: |
+          cmake --version
+          ninja --version
+          if ("${{ matrix.preset }}" -eq "clang") { clang-cl --version }
+
+      - name: Cache vcpkg installation
+        uses: actions/cache@v4
+        with:
+          path: build/vcpkg_installed
+          key: vcpkg-${{ matrix.preset }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json') }}
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }}

@@ -1,0 +1,14 @@
+GSH_Tools
+Copyright 2026 Samuel Calderon
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+Redistributions must retain this NOTICE file (Apache-2.0, section 4(d)).
+
+Third-party components and data (not covered by the licence above):
+- Eigen (MPL-2.0), GoogleTest (BSD-3-Clause): build/test dependencies via vcpkg.
+- FFTW (GPL-2.0-or-later): external dependency installed by the user (vcpkg); it is NOT
+  distributed with this project. Used only by src/cpp/gsh_expansion/grid.cpp.
+  Do not publish prebuilt binaries or wheels that bundle FFTW without addressing the GPL.
+- XGM2019e gravity field model (Zingerle et al., 2020; ICGEM; CC BY 4.0).
+- GrafLab, pyshtools, pyharm: used only as external comparison engines in benchmark/.
+  They are not redistributed here.

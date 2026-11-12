@@ -1,0 +1,53 @@
+# Build trees and vcpkg installation (CMake presets write to build/<preset>)
+build/
+build-*/
+vcpkg_installed/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Testing/
+
+# Compiled objects and binaries
+*.o
+*.obj
+*.lib
+*.a
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.so
+*.dylib
+*.d
+*.mod
+*.smod
+
+# Private or local-only folders (never published)
+/tools/
+/references/
+/output/
+/data/
+!benchmark/shs/data/
+!benchmark/shs/data/*
+.claude/
+.venv/
+.vs/
+.idea/
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# Model files are not versioned: the compressed benchmark model is a GitHub Release asset (data-v1)
+*.gfc
+*.gfc.xz
+results/raw/
+*.grd
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+.cache/

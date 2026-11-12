@@ -1,0 +1,7 @@
+engine,recurrence,set,threads,parallel_mode,n_repeats,wall_s_median,wall_s_min,wall_s_max,wall_ms_median,cpu_s_median,load_s_median,notes
+graflab,msfc,colorado,6,library,3,22.1830,21.8251,22.6322,22183.0,45.3438,8.598,GrafLab in MATLAB; wall = total call minus a 1-point probe (model load); model reloaded in every repetition; threads = maxNumCompThreads of MATLAB
+graflab,msfc,latsweep,6,library,3,15.1993,14.5509,17.7064,15199.3,30.6875,8.636,GrafLab in MATLAB; wall = total call minus a 1-point probe (model load); model reloaded in every repetition; threads = maxNumCompThreads of MATLAB
+graflab,sfc,colorado,6,library,3,21.8296,21.5694,21.8502,21829.6,45.0938,9.223,GrafLab in MATLAB; wall = total call minus a 1-point probe (model load); model reloaded in every repetition; threads = maxNumCompThreads of MATLAB
+graflab,sfc,latsweep,6,library,3,14.6810,14.4655,14.9839,14681.0,30.7656,8.597,GrafLab in MATLAB; wall = total call minus a 1-point probe (model load); model reloaded in every repetition; threads = maxNumCompThreads of MATLAB
+graflab,era,colorado,6,library,3,41.6509,41.4511,42.9824,41650.9,62.7031,31.348,GrafLab in MATLAB; wall = total call minus a 1-point probe (model load); model reloaded in every repetition; threads = maxNumCompThreads of MATLAB
+graflab,era,latsweep,6,library,3,34.9474,32.0257,41.7363,34947.4,49.0781,30.995,GrafLab in MATLAB; wall = total call minus a 1-point probe (model load); model reloaded in every repetition; threads = maxNumCompThreads of MATLAB

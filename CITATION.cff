@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use vc-gshtools in your work, please cite it as below."
+title: "vc-gshtools: Vibe-Coded Geodetic Spherical Harmonic Tools"
+type: software
+authors:
+  - family-names: Calderon
+    given-names: Samuel
+license: Apache-2.0
+version: 2.0.0
+date-released: 2026-11-11
+abstract: "Spherical-harmonic synthesis of ultra-high-degree gravity-field models in C++20 with SIMD and OpenMP."
