@@ -82,6 +82,64 @@ Windows 11, x64, Visual Studio C++ tools with `cl.exe` or `clang-cl.exe`, CMake 
 The SIMD kernels are built with the AVX2 and AVX-512 flags of each compiler. The project has not been tried on
 other operating systems or compilers.
 
+## References
+
+Sources of the formulas and methods implemented here. The formulas of each module are cited in the comments of its
+source files. The bibliographic data below were read from the papers themselves, except where the last group says
+otherwise.
+
+**Legendre functions and spherical-harmonic synthesis**
+
+- Bosch, W. (2000). On the computation of derivatives of Legendre functions. *Physics and Chemistry of the Earth (A)* 25(9-11), 655-659.
+- Cheong, H.-B., Park, J.-R., Kang, H.-G. (2012). Fourier-series representation and projection of spherical harmonic functions. *Journal of Geodesy*. doi:10.1007/s00190-012-0558-3
+- Fukushima, T. (2012). Numerical computation of spherical harmonics of arbitrary degree and order by extending exponent of floating point numbers. *Journal of Geodesy* 86, 271-285. doi:10.1007/s00190-011-0519-2
+- Fukushima, T. (2012). Numerical computation of spherical harmonics of arbitrary degree and order by extending exponent of floating point numbers: II first-, second-, and third-order derivatives. *Journal of Geodesy*. doi:10.1007/s00190-012-0561-8
+- Fukushima, T. (2017). Transformation between surface spherical harmonic expansion of arbitrary high degree and order and double Fourier series on sphere. *Journal of Geodesy*. doi:10.1007/s00190-017-1049-3
+- Goli, M., Foroughi, I., Novak, P. (2022). New methods for numerical evaluation of ultra-high degree and order associated Legendre functions. *Studia Geophysica et Geodaetica* 66, 81-97. doi:10.1007/s11200-022-0830-9
+- Gruber, C., Abrykosov, O. (2016). On computation and use of Fourier coefficients for associated Legendre functions. *Journal of Geodesy*. doi:10.1007/s00190-016-0891-z
+- Holmes, S. A., Featherstone, W. E. (2002). A unified approach to the Clenshaw summation and the recursive computation of very high degree and order normalised associated Legendre functions. *Journal of Geodesy* 76, 279-299. doi:10.1007/s00190-002-0216-2
+- Jekeli, C., Lee, J. K., Kwon, J. H. (2007). On the computation and approximation of ultra-high-degree spherical harmonic series. *Journal of Geodesy* 81, 603-615. doi:10.1007/s00190-006-0123-z
+- Wittwer, T., Klees, R., Seitz, K., Heck, B. (2008). Ultra-high degree spherical harmonic analysis and synthesis using extended-range arithmetic. *Journal of Geodesy* 82, 223-229. doi:10.1007/s00190-007-0172-y
+
+**Functionals of the geopotential and reference programs**
+
+- Bucha, B., Janak, J. (2013). A MATLAB-based graphical user interface program for computing functionals of the geopotential up to ultra-high degrees and orders. *Computers & Geosciences* 56, 186-196. doi:10.1016/j.cageo.2013.03.012
+- Bucha, B., Janak, J. (2019). *Definition of functionals of the geopotential used in GrafLab software*. Slovak University of Technology in Bratislava.
+- Bucha, B. (2026). CHarm: C/Python library for spherical harmonic transforms in planetary geodesy. *Earth Science Informatics* 19, 29. doi:10.1007/s12145-026-02076-z
+
+**Ellipsoid, tides and omission error**
+
+- Moritz, H. (2000). Geodetic Reference System 1980. *Journal of Geodesy* 74, 128-133.
+- Tscherning, C. C., Rapp, R. H. (1974). *Closed covariance expressions for gravity anomalies, geoid undulations, and deflections of the vertical implied by anomaly degree variance models*. Report No. 208, Department of Geodetic Science, The Ohio State University.
+- Makinen, J. (2021). The permanent tide and the International Height Reference Frame IHRF. arXiv:2006.08440 (version 3).
+
+**Gravity field model used in the benchmark**
+
+- Zingerle, P., Pail, R., Gruber, T., Oikonomidou, X. (2019). The experimental gravity field model XGM2019e. GFZ Data Services. doi:10.5880/ICGEM.2019.007
+
+**Cited in the code, entry copied from the reference list of a paper that was read (the paper itself was not read)**
+
+- Smith, J. M., Olver, F. W. J., Lozier, D. W. (1981). Extended-range arithmetic and normalized Legendre polynomials. *ACM Transactions on Mathematical Software* 7, 93-105. (From Wittwer et al. 2008.)
+- Lozier, D. W., Smith, J. M. (1981). Algorithm 567: Extended-range arithmetic and normalized Legendre polynomials. *ACM Transactions on Mathematical Software* 7, 141-146. (From Wittwer et al. 2008.)
+- Driscoll, J. R., Healy, D. (1994). Computing Fourier transforms and convolutions on the 2-sphere. *Advances in Applied Mathematics* 15, 202-250. (From Wittwer et al. 2008.)
+- Cartwright, D. E., Tayler, R. J. (1971). New computations of the tide-generating potential. *Geophysical Journal of the Royal Astronomical Society* 23, 45-74. (From Makinen 2021.)
+- Cartwright, D. E., Edden, A. C. (1973). Corrected tables of tidal harmonics. *Geophysical Journal of the Royal Astronomical Society* 33, 253-264. (From Makinen 2021.)
+- Petit, G., Luzum, B. (eds.) (2010). *IERS Conventions (2010)*, IERS Technical Note 36. Verlag des Bundesamts fuer Kartographie und Geodaesie, Frankfurt am Main. (From Makinen 2021.)
+
+**Cited in the code, not checked against any paper read**
+
+- Pavlis, N. K., et al. (2012). The development and evaluation of the Earth Gravitational Model 2008 (EGM2008). *Journal of Geophysical Research* 117, B04406.
+- Bowring, B. R. (1976). Transformation from spatial to geographical coordinates. *Survey Review* 23(181), 323-327.
+
+### What was checked against the papers
+
+- Moritz (2000): a, GM, omega, J2, e^2, gamma_e and gamma_p of GRS80 equal the constants in `ellipsoid.hpp`.
+- Tscherning and Rapp (1974), Report 208, Table 7: A = 425.28 mGal^2, B = 24 and s = 0.999617 (so R_B = 6369.78 km with R_E = 6371 km).
+- Wittwer et al. (2008), Eq. (3): the digit-loss bound `digit_loss_bound`; the paper attributes it to Smith, Olver and Lozier (1981).
+- Jekeli et al. (2007), Eq. (14): the truncation rule m <= L sin(theta) + mu used for the polar optimisation. The value of mu (`max(100, 0.01 nmax)`) is a choice of this project, not from the paper.
+- Makinen (2021): H0 = -0.31460 m (Eq. 16), k20 = 0.30190 and the nominal k = 0.3. The constant A0 = 4.4228e-8 used in `tides.hpp` is not written in that paper under that symbol and was **not** checked.
+- Bucha and Janak (2013, 2019): the definitions of the functionals; the results are compared with GrafLab 2.1.4 in `benchmark/meridian` and `benchmark/shs`.
+
 ## License and third-party software
 
 Licensed under the Apache License, Version 2.0 (see [LICENSE](LICENSE) and [NOTICE](NOTICE)).

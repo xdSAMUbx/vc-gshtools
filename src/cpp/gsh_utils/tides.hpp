@@ -10,7 +10,7 @@
 //
 // Sources (see the comment of each function in tides.cpp for the formula it implements):
 //   - Tide systems, IHRF conventions and conversion formulas: Makinen, J. (2021), "The permanent tide and the
-//     International Height Reference Frame IHRF", Journal of Geodesy (arXiv:2006.08440); IAG Resolution No. 1 of 2015.
+//     International Height Reference Frame IHRF", arXiv:2006.08440 (v3); IAG Resolution No. 1 of 2015.
 //   - IERS Conventions (2010), IERS Technical Note 36 (Petit and Luzum, eds.): the zero-tide tidal coefficients.
 //   - GRS80 constants (gamma_e, k, e^2): Moritz, H. (2000), "Geodetic Reference System 1980",
 //     Journal of Geodesy 74, 128-133.
