@@ -60,7 +60,7 @@ namespace gsh::coords
   // Algorithm (iterative, converges in a few steps to machine precision for any point, including
   // the poles and points at large heights):
   //   1. p = sqrt(X^2 + Y^2), lambda = atan2(Y, X).
-  //   2. Initial latitude from a closed-form approximation of Bowring's type (Bowring, B. R. 1976,
+  //   2. Initial latitude from a closed-form approximation of Bowring's type (Bowring 1976, Eq. 4,
   //      Survey Review 23(181), 323-327):
   //        theta = atan2(Z a, p b),
   //        phi0  = atan2(Z + (e'^2 b) sin^3 theta, p - e^2 a cos^3 theta),  e'^2 = e^2 / (1 - e^2).
