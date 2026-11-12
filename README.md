@@ -113,8 +113,9 @@ otherwise.
 - Tscherning, C. C., Rapp, R. H. (1974). *Closed covariance expressions for gravity anomalies, geoid undulations, and deflections of the vertical implied by anomaly degree variance models*. Report No. 208, Department of Geodetic Science, The Ohio State University.
 - Makinen, J. (2021). The permanent tide and the International Height Reference Frame IHRF. arXiv:2006.08440 (version 3).
 
-**Gravity field model used in the benchmark**
+**Gravity field models used in the benchmarks**
 
+- Pavlis, N. K., Holmes, S. A., Kenyon, S. C., Factor, J. K. (2012). The development and evaluation of the Earth Gravitational Model 2008 (EGM2008). *Journal of Geophysical Research* 117, B04406. doi:10.1029/2011JB008916
 - Zingerle, P., Pail, R., Gruber, T., Oikonomidou, X. (2019). The experimental gravity field model XGM2019e. GFZ Data Services. doi:10.5880/ICGEM.2019.007
 
 **Cited in the code, entry copied from the reference list of a paper that was read (the paper itself was not read)**
@@ -126,9 +127,8 @@ otherwise.
 - Cartwright, D. E., Edden, A. C. (1973). Corrected tables of tidal harmonics. *Geophysical Journal of the Royal Astronomical Society* 33, 253-264. (From Makinen 2021.)
 - Petit, G., Luzum, B. (eds.) (2010). *IERS Conventions (2010)*, IERS Technical Note 36. Verlag des Bundesamts fuer Kartographie und Geodaesie, Frankfurt am Main. (From Makinen 2021.)
 
-**Cited in the code, not checked against any paper read**
+**Cited in the code, not checked against any paper read (not yet available)**
 
-- Pavlis, N. K., et al. (2012). The development and evaluation of the Earth Gravitational Model 2008 (EGM2008). *Journal of Geophysical Research* 117, B04406.
 - Bowring, B. R. (1976). Transformation from spatial to geographical coordinates. *Survey Review* 23(181), 323-327.
 
 ### What was checked against the papers
