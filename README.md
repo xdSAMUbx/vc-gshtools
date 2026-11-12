@@ -14,11 +14,13 @@ conversions and a delimited-table reader.
 Public now:
 
 - `src/cpp/gsh_utils`, `src/cpp/gsh_legendre` and `src/cpp/gsh_expansion`: the library target `gsh`.
-- The unit tests of these modules (`tests/`, GoogleTest).
+- The unit tests of these modules: C++ in `tests/cpp` (GoogleTest) and Python in `tests/py` (pytest).
 - Documentation of these modules in [docs/README.md](docs/README.md).
-- The point example `examples/ex_puntual.cpp`.
-- The spherical-harmonic synthesis benchmark in [benchmark/shs](benchmark/shs), with its drivers, data
-  description, raw results and summary.
+- The Python package `gshtools` (`src/python`), a thin wrapper of the C++ library.
+- Usage examples in C++ (`examples/cpp`) and in Python (`examples/py`).
+- The spherical-harmonic synthesis benchmark in [benchmark/shs](benchmark/shs), and the Legendre-function and
+  meridian benchmarks in [benchmark/alf](benchmark/alf) and [benchmark/meridian](benchmark/meridian), with their
+  drivers, data description, results and summaries.
 
 Future work, not in this repository yet: geoid computation, residual terrain reduction (RCR), least-squares
 collocation (LSC). Nothing about their internals is published here.
@@ -36,12 +38,20 @@ it checks the tools, bootstraps vcpkg if it is missing, configures, builds and r
 
 Without `-InstallPrereqs` the script installs nothing and prints the winget commands for anything missing.
 `-InstallPrereqs` can require administrator rights (winget asks through UAC). The Visual Studio Build Tools
-download is several gigabytes. The first configure builds FFTW, Eigen and GoogleTest through vcpkg, which takes a
+download is several gigabytes. The first configure builds Eigen and GoogleTest through vcpkg, which takes a
 long time and needs internet access. Run `.\config\config.ps1 -Preset msvc` to use `cl.exe` instead of
 `clang-cl`. Run it with `-Clean` to delete the build folder of the preset first.
 
 Compilers are `cl.exe` (preset `msvc`) and `clang-cl.exe` (preset `clang`). The presets are in
 [CMakePresets.json](CMakePresets.json); they need `VCPKG_ROOT` to point at a vcpkg checkout.
+
+## Python
+
+The `gshtools` package is a thin [pybind11](https://github.com/pybind/pybind11) wrapper: the C++ library is the
+reference implementation and the Python functions keep the C++ names. Install from the source tree with
+`pip install .` (needs the same build tools as the C++ build; see [src/python/README.md](src/python/README.md)).
+Usage examples are in [examples/py](examples/py). Prebuilt wheels are built for Windows only (x64, Python 3.10-3.13);
+Linux and macOS wheels are not provided yet.
 
 ## Building and testing by hand
 
@@ -149,9 +159,9 @@ otherwise.
 
 Licensed under the Apache License, Version 2.0 (see [LICENSE](LICENSE) and [NOTICE](NOTICE)).
 
-FFTW is licensed under the GPL and is an external dependency, installed by the user through vcpkg. It is **not**
-distributed with this repository. Do not publish binaries or wheels that bundle FFTW without resolving the GPL
-obligations. Eigen and GoogleTest are build dependencies. The XGM2019e model is distributed under CC BY 4.0 (see
+The grid synthesis uses pocketfft, a header-only real FFT under the BSD-3-Clause licence, vendored unchanged in
+`src/cpp/third_party/pocketfft` (its LICENSE.md is kept there). FFTW is no longer a dependency. Eigen and GoogleTest
+are build dependencies, installed through vcpkg. Binaries and wheels bundle only permissively licensed code. The XGM2019e model is distributed under CC BY 4.0 (see
 [benchmark/shs/data/DATA.md](benchmark/shs/data/DATA.md)). GrafLab, pyharm, pyshtools and SHTOOLS are used only as
 comparison engines and are not redistributed.
 

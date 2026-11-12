@@ -3,9 +3,13 @@
 #include <chrono>
 #include <cmath>
 #include <complex>
-#include <fftw3.h>
 #include <omp.h>
+#include <optional>
 #include <stdexcept>
+// pocketfft (BSD-3-Clause, vendored in src/cpp/third_party/pocketfft) gives the real transform of the longitude sums.
+// Its threading is disabled because synth_grid parallelises over rows with OpenMP.
+#define POCKETFFT_NO_MULTITHREADING
+#include "pocketfft_hdronly.h"
 #include "kernels.hpp"
 
 namespace gsh
@@ -69,6 +73,24 @@ namespace gsh
       g.nlon = nlon;
       g.dlon = 2.0 * PI / static_cast<double>(nlon);
       return g;
+    }
+
+    // Real backward transform of length nlon (unnormalised, exponent +i, as FFTW's c2r).
+    using RealPlan = pocketfft::detail::pocketfft_r<double>;
+
+    // Writes the half spectrum spec[0..nlon/2] into dst in FFTPACK half-complex order: r0, r1, i1, r2, i2, ..., and
+    // r_{nlon/2} last when nlon is even. The imaginary parts of the DC and Nyquist terms have no slot in this layout
+    // and are dropped, which is also what FFTW's c2r does. dst must hold nlon values.
+    void pack_half_complex(const std::complex<double> *spec, std::int64_t nlon, double *dst)
+    {
+      dst[0] = spec[0].real();
+      for (std::int64_t k = 1; 2 * k < nlon; ++k)
+      {
+        dst[2 * k - 1] = spec[k].real();
+        dst[2 * k] = spec[k].imag();
+      }
+      if (nlon % 2 == 0)
+        dst[nlon - 1] = spec[nlon / 2].real();
     }
 
     // Which lump group feeds each field, and the m-weight it carries: kind 0 = plain (a, b); kind 1 = m (b, -a),
@@ -225,6 +247,14 @@ namespace gsh
     return p;
   }
 
+  void c2r_unnormalised(const std::complex<double> *spec, std::int64_t nlon, double *out)
+  {
+    if (nlon < 1)
+      throw std::invalid_argument("c2r_unnormalised: nlon must be positive");
+    pack_half_complex(spec, nlon, out);
+    RealPlan(static_cast<std::size_t>(nlon)).exec(out, 1.0, false);
+  }
+
   RawFields synth_grid(const Prepared &prep, const Grid &grid, int grad, const SynthOptions &opts, GridTiming *timing)
   {
     if (grad < 0 || grad > 2)
@@ -256,16 +286,11 @@ namespace gsh
     const double pt = opts.polar_optimization ? std::max(100.0, 0.01 * nmax) : -1.0;
     const TileOpts topts{pt, opts.skip_forbidden, opts.rotate_trig};
 
-    // One complex-to-real inverse FFT of length nlon per field and row. FFTW_ESTIMATE avoids planning measurements;
-    // FFTW_DESTROY_INPUT is allowed because the spectrum buffer is rebuilt for every transform.
-    fftw_plan plan = nullptr;
+    // One real backward transform of length nlon per field and row. The plan is built once and shared by all threads:
+    // its exec() is const and keeps its scratch on the call stack.
+    std::optional<RealPlan> plan;
     if (use_fft)
-    {
-      AlignedVec<double> tmp(nlon + 2);
-      plan = fftw_plan_dft_c2r_1d(static_cast<int>(nlon), reinterpret_cast<fftw_complex *>(tmp.data()), tmp.data(), FFTW_ESTIMATE | FFTW_DESTROY_INPUT | FFTW_UNALIGNED);
-      if (!plan)
-        throw std::runtime_error("FFTW: could not create the plan");
-    }
+      plan.emplace(static_cast<std::size_t>(nlon));
 
     // Turns the lumps of one row into one output row per field. For each field and order m it builds the
     // coefficients (a, b) of cos(mλ) and sin(mλ) from the even and odd lump pairs, then sums over m either
@@ -336,7 +361,9 @@ namespace gsh
             else
               spec[k] += 0.5 * z;
           }
-          fftw_execute_dft_c2r(plan, reinterpret_cast<fftw_complex *>(spec.data()), dst);
+          // The spectrum is packed straight into the output row, and the in-place transform then overwrites it.
+          pack_half_complex(spec.data(), nlon, dst);
+          plan->exec(dst, 1.0, false);
         }
         else
         {
@@ -411,8 +438,6 @@ namespace gsh
         emit(lump.data(), 0, t.row_mirror, true, spec, cj, sj);
     }
 
-    if (plan)
-      fftw_destroy_plan(plan);
     if (timing)
     {
       timing->lumps = t_lump;

@@ -265,7 +265,7 @@ for (Functional f : rq.outputs)  // s^-2; multiply by 1e9 for Eotvos
 
 For N and ζ, T, δg_sa and γ are evaluated at `r_ell(φ)`, at the same spherical latitude as the point and at its longitude. H is looked up at the geodetic latitude of that foot point.
 
-**To get T/γ on the ellipsoid without a DEM,** create `Points` with `r = ell.radius(lat)` and request `zeta_ell`. This is N without the topography term. `zeta_on_ellipsoid` in `examples/ex_aerogravimetria.cpp` does this.
+**To get T/γ on the ellipsoid without a DEM,** create `Points` with `r = ell.radius(lat)` and request `zeta_ell`. This is N without the topography term. `zeta_on_ellipsoid` in `examples/cpp/ex_aerogravimetria.cpp` does this.
 
 **Example (deflections)**
 

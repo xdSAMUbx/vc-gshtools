@@ -57,7 +57,7 @@ double oe_kaula = omission_kaula_undulation(6371000.0, 360);             // 0.17
 
 ## Validation
 
-`tests/test_errors.cpp`: a single-coefficient hand formula; a Monte Carlo (3000 random coefficient sets synthesised with `compute_functionals`) whose sample standard deviation matches the commission error within 6 % for T, ζ and Δg; Parseval checks for the global commission and omission errors; and consistency between the generic and direct Tscherning–Rapp routes. Values for EGM2008 at n = 360: commission 0.078 m, omission 0.232 m (Tscherning–Rapp), 0.177 m (Kaula).
+`tests/cpp/test_errors.cpp`: a single-coefficient hand formula; a Monte Carlo (3000 random coefficient sets synthesised with `compute_functionals`) whose sample standard deviation matches the commission error within 6 % for T, ζ and Δg; Parseval checks for the global commission and omission errors; and consistency between the generic and direct Tscherning–Rapp routes. Values for EGM2008 at n = 360: commission 0.078 m, omission 0.232 m (Tscherning–Rapp), 0.177 m (Kaula).
 
 ## Error report
 

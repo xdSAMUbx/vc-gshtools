@@ -1,6 +1,6 @@
 // tides.cpp: conversions between the permanent-tide systems tide-free (NT), zero-tide (ZT) and
 // mean-tide (MT). The operation order follows the original reference implementation (not part of this
-// release), so that the values reproduce its results; tests/test_tides.cpp compares against reference
+// release), so that the values reproduce its results; tests/cpp/test_tides.cpp compares against reference
 // tables generated with that implementation.
 //
 // Formulas and sources (see tides.hpp for the full list):

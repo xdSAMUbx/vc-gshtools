@@ -28,8 +28,9 @@ target_include_directories(gsh
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gsh_utils
          ${CMAKE_CURRENT_SOURCE_DIR}/gsh_legendre
          ${CMAKE_CURRENT_SOURCE_DIR}/gsh_expansion
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/gsh_legendre/kernels)
-target_link_libraries(gsh PUBLIC OpenMP::OpenMP_CXX Eigen3::Eigen PRIVATE FFTW3::fftw3)
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/gsh_legendre/kernels
+         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/pocketfft)
+target_link_libraries(gsh PUBLIC OpenMP::OpenMP_CXX Eigen3::Eigen)
 target_compile_definitions(gsh PUBLIC _CRT_SECURE_NO_WARNINGS NOMINMAX)
 
 # One translation unit per ISA, so that runtime dispatch is safe.

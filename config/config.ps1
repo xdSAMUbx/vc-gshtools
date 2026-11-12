@@ -248,7 +248,7 @@ Write-Note "VCPKG_ROOT set for this process: $vcpkgRootResolved"
 
 # ---------------------------------------------------------------- 5. configure
 Write-Step "5/7 Configure (cmake --preset $Preset)"
-Write-Note 'The first configure builds the dependencies (FFTW, Eigen, GoogleTest) with vcpkg. This takes a long time and needs internet access.'
+Write-Note 'The first configure builds the dependencies (Eigen, GoogleTest) with vcpkg. This takes a long time and needs internet access.'
 if ($Clean -and (Test-Path -LiteralPath $BuildDir)) {
     $buildRoot = Join-Path $RepoRoot 'build'
     if (-not $BuildDir.StartsWith($buildRoot + '\', [StringComparison]::OrdinalIgnoreCase)) { throw "Refusing to delete $BuildDir." }

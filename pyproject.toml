@@ -1,0 +1,18 @@
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.13"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "gshtools"
+version = "2.0.0"
+description = "Python bindings of GSH_Tools: spherical-harmonic synthesis of geopotential functionals"
+readme = "src/python/README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24"]
+
+[tool.scikit-build]
+minimum-version = "0.10"
+cmake.version = ">=3.24"
+cmake.build-type = "Release"
+# Only the library and the Python module: no tests, benchmarks or examples.
+cmake.define = { GSH_BUILD_PYTHON = "ON", GSH_BUILD_TOOLS = "OFF", BUILD_TESTING = "OFF" }

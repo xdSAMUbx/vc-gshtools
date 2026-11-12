@@ -9,10 +9,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 option(BUILD_TESTING "Build the unit tests (GoogleTest)" OFF)
-option(GSH_BUILD_TOOLS "Build the point example and the SHS benchmark driver" ON)
+option(GSH_BUILD_TOOLS "Build the examples and the benchmark drivers" ON)
+option(GSH_BUILD_PYTHON "Build the Python bindings (gshtools._core, needs pybind11)" OFF)
 
 find_package(OpenMP REQUIRED)
-find_package(FFTW3 CONFIG REQUIRED)
 find_package(Eigen3 CONFIG REQUIRED)
 
 # Release must always be optimised, whatever the cache holds. A stale or incomplete CMake cache can leave
@@ -27,6 +27,10 @@ if (GSH_BUILD_TOOLS)
   add_subdirectory(examples)
   add_subdirectory(benchmark/shs/code/cpp)
   add_subdirectory(benchmark/meridian)
+endif()
+
+if (GSH_BUILD_PYTHON)
+  add_subdirectory(src/python python)
 endif()
 
 if (BUILD_TESTING)

@@ -1,9 +1,11 @@
 // grid.hpp: synthesis on latitude-longitude grids.
 // When the grid covers the full circle with uniform longitude spacing, the longitude sum is done with a 1-D
-// complex-to-real FFT (FFTW). Regional grids use a direct sum with a rotation recurrence for cos/sin(mλ).
+// real backward transform (pocketfft, vendored in third_party/pocketfft). Regional grids use a direct sum with a
+// rotation recurrence for cos/sin(mλ).
 // Opposite latitudes ±φ with the same radius are computed from one set of lumps (parity of the terms in n - m).
 // Units: latitudes and longitudes in radians, radii in metres, outputs dimensionless raw sums (see shs.hpp).
 #pragma once
+#include <complex>
 #include <string>
 #include <vector>
 #include "shs.hpp"
@@ -56,4 +58,10 @@ namespace gsh
   // Expands a grid into scattered points, row by row (latitude slow, longitude fast). Used to validate the grid
   // path against the point path; memory and time grow as nlat * nlon, so it is slow for high degrees.
   Points grid_to_points(const Grid &grid);
+
+  // Unnormalised complex-to-real inverse transform of length nlon, the operation behind the FFT path of synth_grid:
+  // out[j] = Re sum_{k=0}^{nlon-1} X_k exp(+2 pi i j k / nlon), with X_{nlon-k} = conj(X_k). spec holds the half
+  // spectrum X_0 .. X_{nlon/2} (nlon/2 + 1 values); the imaginary parts of X_0 and X_{nlon/2} are ignored.
+  // It builds its own plan on each call, so it is meant for tests and checks rather than inner loops.
+  void c2r_unnormalised(const std::complex<double> *spec, std::int64_t nlon, double *out);
 }

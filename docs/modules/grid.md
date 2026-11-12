@@ -129,10 +129,10 @@ Computes the [raw sums](../README.md#sumas-crudas) on the grid. Each field has `
 2. With `grad > 0`, separates the rows with `cos φ < 5e-3`, which are computed with the full triangle.
 3. Computes lumps in batches of `WIDTH` latitudes (the SIMD width of the ISA in use: 1, 4 or 8) with `grid_lumps`, one thread per batch.
 4. Converts the lumps into rows:
-   - **Full circle:** FFTW `c2r` FFT. The plan is shared and each thread runs it with its own buffers. If `m` exceeds `nlon/2`, the frequency is folded, so few longitudes are supported.
+   - **Full circle:** a real backward FFT of length `nlon` (unnormalised, the same convention as FFTW's `c2r`), from pocketfft (BSD-3-Clause, vendored in `src/cpp/third_party/pocketfft`). The plan is built once and shared by the threads; each thread has its own spectrum buffer. If `m` exceeds `nlon/2`, the frequency is folded, so few longitudes are supported.
    - **Regional:** direct summation by rotation along the parallel.
 
-**Errors:** `invalid_argument` if `grad` is not 0, 1 or 2, or if `r` does not have one value per latitude; `runtime_error` if FFTW cannot create the plan.
+**Errors:** `invalid_argument` if `grad` is not 0, 1 or 2, or if `r` does not have one value per latitude.
 
 **Example**
 

@@ -1,7 +1,11 @@
 // Grid synthesis must equal point-by-point synthesis at the same locations (grid_to_points).
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <cmath>
+#include <complex>
+#include <cstdint>
 #include <random>
+#include <vector>
 #include "grid.hpp"
 #include "kernels.hpp"
 using namespace gsh;
@@ -120,4 +124,50 @@ TEST(Grid, RadiusPerLatitudeBreaksSymmetrySafely)
   SynthOptions o;
   o.polar_optimization = false;
   compare(synth_grid(prep, g, 1, o), synth_points(prep, grid_to_points(g), 1, o), 1e-11, "radios");
+}
+
+// The FFT path of synth_grid relies on c2r_unnormalised following FFTW's backward (c2r) convention. This compares it
+// with a naive O(n^2) sum in long double, for odd, even, power-of-two and prime lengths, and for the longitude counts
+// of the project grids (2L = 122 for L = 61, 4L = 244).
+TEST(Grid, C2RMatchesNaiveDft)
+{
+  const long double pi = 3.141592653589793238462643383279502884L;
+  for (std::int64_t n : {1, 2, 3, 4, 7, 8, 13, 16, 61, 64, 97, 100, 101, 122, 244})
+  {
+    std::mt19937_64 g(static_cast<unsigned>(n));
+    std::normal_distribution<double> nd;
+    std::vector<std::complex<double>> spec(static_cast<std::size_t>(n / 2 + 1));
+    for (auto &z : spec)
+      z = {nd(g), nd(g)};
+    std::vector<double> out(static_cast<std::size_t>(n));
+    c2r_unnormalised(spec.data(), n, out.data());
+
+    // Full spectrum with X_{n-k} = conj(X_k). The imaginary parts of X_0 and X_{n/2} are ignored by the transform, so
+    // they are dropped here as well (the random values above are nonzero there on purpose).
+    const auto full = [&](std::int64_t k)
+    {
+      const bool mirror = k > n / 2;
+      const std::int64_t h = mirror ? n - k : k;
+      const bool self = h == 0 || 2 * h == n;
+      const std::complex<long double> z(spec[h].real(), self ? 0.0L : static_cast<long double>(spec[h].imag()));
+      return mirror ? std::conj(z) : z;
+    };
+    std::vector<long double> ref(static_cast<std::size_t>(n));
+    long double scale = 0;
+    for (std::int64_t j = 0; j < n; ++j)
+    {
+      long double s = 0;
+      for (std::int64_t k = 0; k < n; ++k)
+      {
+        const long double ang = 2 * pi * static_cast<long double>((j * k) % n) / static_cast<long double>(n);
+        s += (full(k) * std::complex<long double>(std::cos(ang), std::sin(ang))).real();
+      }
+      ref[static_cast<std::size_t>(j)] = s;
+      scale = std::max(scale, std::abs(s));
+    }
+    long double err = 0;
+    for (std::int64_t j = 0; j < n; ++j)
+      err = std::max(err, std::abs(static_cast<long double>(out[static_cast<std::size_t>(j)]) - ref[static_cast<std::size_t>(j)]));
+    EXPECT_LT(err, 1e-13L * scale) << "nlon = " << n;
+  }
 }

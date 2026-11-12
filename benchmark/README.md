@@ -7,5 +7,5 @@
 | [`alf/`](alf/README.md) | Legendre sum-rule identities; fast kernel vs oracle | analytic (none external) |
 
 Error-model validations (commission/omission, null ellipsoid, Laplace trace) are unit tests:
-`tests/test_errors.cpp`, `tests/test_error_report.cpp`, `tests/test_sanity_identities.cpp`; see
+`tests/cpp/test_errors.cpp`, `tests/cpp/test_error_report.cpp`, `tests/cpp/test_sanity_identities.cpp`; see
 [`docs/modules/errors.md`](../docs/modules/errors.md).

@@ -6,9 +6,13 @@ Redistributions must retain this NOTICE file (Apache-2.0, section 4(d)).
 
 Third-party components and data (not covered by the licence above):
 - Eigen (MPL-2.0), GoogleTest (BSD-3-Clause): build/test dependencies via vcpkg.
-- FFTW (GPL-2.0-or-later): external dependency installed by the user (vcpkg); it is NOT
-  distributed with this project. Used only by src/cpp/gsh_expansion/grid.cpp.
-  Do not publish prebuilt binaries or wheels that bundle FFTW without addressing the GPL.
+- pocketfft (BSD-3-Clause; Copyright (C) 2010-2018 Max-Planck-Society; authors Martin Reinecke and Peter Bell): a
+  header-only real FFT, vendored unchanged in src/cpp/third_party/pocketfft (its LICENSE.md is kept there). Used only
+  by src/cpp/gsh_expansion/grid.cpp.
+- FFTW is no longer used by this project. It was GPL-2.0-or-later; it is removed, so binaries and wheels do not bundle it.
 - XGM2019e gravity field model (Zingerle et al., 2020; ICGEM; CC BY 4.0).
 - GrafLab, pyshtools, pyharm: used only as external comparison engines in benchmark/.
   They are not redistributed here.
+- CHarm (Bucha, B., BSD-3-Clause, Copyright (c) 2022 Blazej Bucha): the kernel loop order, the grid definitions and
+  the derivative scheme of this library follow the published design of CHarm, and CHarm is used as a comparison engine.
+  Its source is not redistributed here.

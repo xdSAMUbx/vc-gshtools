@@ -3,7 +3,6 @@
   "version": "2.0.0",
   "description": "Vibe-Coded Geodetic Spherical Harmonic Tools",
   "dependencies": [
-    { "name": "fftw3", "features": ["avx2"] },
     { "name": "eigen3" }
   ],
   "features": {

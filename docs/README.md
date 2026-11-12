@@ -14,7 +14,7 @@ Reference for the modules included in this repository. The benchmark is document
 | [legendre](modules/legendre.md) | `gsh_legendre/legendre.hpp` | Legendre functions: SFC, MSFC, ERA, and their derivatives |
 | [kernels](modules/kernels.md) | `gsh_legendre/kernels/` | Internal SIMD kernels of the CPU backend |
 | [shs](modules/shs.md) | `gsh_expansion/shs.hpp` | Synthesis at scattered points and the reference oracle |
-| [grid](modules/grid.md) | `gsh_expansion/grid.hpp` | Synthesis on latitude-longitude grids with FFTW |
+| [grid](modules/grid.md) | `gsh_expansion/grid.hpp` | Synthesis on latitude-longitude grids with pocketfft (vendored) |
 | [functionals](modules/functionals.md) | `gsh_expansion/functionals.hpp` | Functionals of the gravity field |
 
 

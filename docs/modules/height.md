@@ -188,7 +188,7 @@ H of the DEM is taken as **orthometric**, because the file does not declare it. 
 
 ## Putting it together
 
-Typical workflow: load the regional DEM, reduce it to 5′ blocks, and evaluate heights at geodetic points. The result feeds the N and ζ functionals (see `examples/ex_aerogravimetria.cpp`, where `rq.height = height_from_grid(dem, 5.0 / 60.0)`).
+Typical workflow: load the regional DEM, reduce it to 5′ blocks, and evaluate heights at geodetic points. The result feeds the N and ζ functionals (see `examples/cpp/ex_aerogravimetria.cpp`, where `rq.height = height_from_grid(dem, 5.0 / 60.0)`).
 
 ```cpp
 #include "height.hpp"
