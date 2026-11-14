@@ -17,7 +17,9 @@ curl -fsSL --retry 5 --retry-delay 5 -o eigen.tar.gz "https://gitlab.com/libeige
 mkdir eigen-src
 tar xzf eigen.tar.gz -C eigen-src --strip-components=1
 
-/opt/python/cp312-cp312/bin/pip install cmake ninja
-/opt/python/cp312-cp312/bin/cmake -S eigen-src -B eigen-build -G Ninja -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF
-/opt/python/cp312-cp312/bin/cmake --install eigen-build
+PATH=/opt/python/cp312-cp312/bin:$PATH   # pip puts ninja next to cmake; CMake must find it
+export PATH
+pip install cmake ninja
+cmake -S eigen-src -B eigen-build -G Ninja -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF
+cmake --install eigen-build
 ls /usr/local/share/eigen3/cmake
