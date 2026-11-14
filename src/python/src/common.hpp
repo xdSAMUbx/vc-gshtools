@@ -72,6 +72,7 @@ namespace gshpy
   void bind_coords(py::module_ &m);        // submodule coords
   void bind_tides(py::module_ &m);         // submodule tides (TideSystem included)
   void bind_legendre(py::module_ &m);      // submodule legendre
+  void bind_legendre_points(py::module_ &m); // top level: legendre_points, LegendrePoints
   void bind_functionals(py::module_ &m);   // Functional, FunctionalRequest, compute_functionals, height sources
   void bind_synthesis(py::module_ &m);     // Prepared, RawFields, synth_points, Grid, synth_grid
   void bind_errors(py::module_ &m);        // errors and error_report

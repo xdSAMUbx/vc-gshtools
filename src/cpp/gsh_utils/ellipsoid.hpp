@@ -59,4 +59,10 @@ namespace gsh
   // (degree 0 included). Only these zonal terms are modified; the S coefficients are unchanged.
   // Formulas: Bucha and Janák (2019).
   Model disturbing_model(const Model &model, const Ellipsoid &ell);
+
+  // Zonal part removed by disturbing_model, as a model: C_{2k,0} = (GM_Ell/GM)(a_Ell/R)^(2k) C^Ell_{2k,0} for k = 0..10
+  // and 2k <= min(20, model.nmax) (degree 0 included); every other coefficient is zero. Its degree is min(20, model.nmax),
+  // and GM, R and the header fields are copied from `model`. Coefficient by coefficient, model = disturbing_model(model, ell)
+  // + normal_zonal_model(model, ell). compute_functionals uses it to recover the model sums from the disturbing sums.
+  Model normal_zonal_model(const Model &model, const Ellipsoid &ell);
 }

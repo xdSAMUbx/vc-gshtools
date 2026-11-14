@@ -13,6 +13,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <memory>
 #include <new>
@@ -21,6 +22,25 @@
 #if defined(_MSC_VER)
 #include <malloc.h>
 #endif
+
+namespace gsh::detail
+{
+  // Size in bytes of an open binary stream, 64-bit safe on MSVC (_fseeki64) and POSIX (fseeko/ftello).
+  // Leaves the stream at its start.
+  inline long long stream_size(std::FILE *f)
+  {
+#if defined(_MSC_VER)
+    _fseeki64(f, 0, SEEK_END);
+    const long long n = _ftelli64(f);
+    _fseeki64(f, 0, SEEK_SET);
+#else
+    fseeko(f, 0, SEEK_END);
+    const long long n = static_cast<long long>(ftello(f));
+    fseeko(f, 0, SEEK_SET);
+#endif
+    return n;
+  }
+} // namespace gsh::detail
 
 namespace gsh
 {

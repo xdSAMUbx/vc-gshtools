@@ -85,6 +85,7 @@ namespace
     int nmax = -1;
     int threads = 0;   // 0 = OpenMP default
     int repeat = 1;
+    int fuse = 1;      // --fuse 0 disables the fused model+disturbing pass of compute_functionals (A/B timing)
   };
 
   [[noreturn]] void usage(const char *why)
@@ -126,6 +127,8 @@ namespace
         a.threads = std::atoi(value().c_str());
       else if (key == "--repeat")
         a.repeat = std::atoi(value().c_str());
+      else if (key == "--fuse")
+        a.fuse = std::atoi(value().c_str());
       else
         usage(("unknown option " + key).c_str());
     }
@@ -372,7 +375,7 @@ namespace
 
   // Production path: gsh::compute_functionals with V, T and dg in one request. The library plans the passes:
   // the model at gradient order 1 (its S0 is V, its gradient sums are dg) and the disturbing model at order 0 (T).
-  Outputs run_fast(const Model &model, const Points &pts, int nmax, int threads)
+  Outputs run_fast(const Model &model, const Points &pts, int nmax, int threads, bool fuse)
   {
     FunctionalRequest rq;
     rq.outputs = {Functional::V, Functional::T, Functional::dg};
@@ -380,6 +383,7 @@ namespace
     rq.nmin = 0;   // explicit: degree 0 (C00 of the file) is part of V
     rq.ellipsoid = Ellipsoid::GRS80();
     rq.synth.threads = threads;
+    rq.fuse_model_and_disturbing = fuse;
     const FunctionalResult res = compute_functionals(model, pts, rq);
     const auto &v = res.values.at(Functional::V);
     const auto &t = res.values.at(Functional::T);
@@ -539,7 +543,7 @@ int main(int argc, char **argv)
       Outputs o;
       if (a.recurrence == "fast")
       {
-        o = run_fast(model, pts, a.nmax, a.threads);
+        o = run_fast(model, pts, a.nmax, a.threads, a.fuse != 0);
       }
       else
       {

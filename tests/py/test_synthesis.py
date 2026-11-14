@@ -49,3 +49,37 @@ def test_regular_grid_is_regional_and_not_full_circle(gsh):
 
 def test_isa_name_is_one_of_the_three(gsh):
     assert gsh.active_isa_name() in ("avx512", "avx2", "scalar")
+
+
+@pytest.mark.parametrize("grad", [0, 1, 2])
+def test_every_available_isa_gives_the_same_sums(gsh, egm2008_nmax60, grad):
+    """The scalar, AVX2 and AVX-512 kernels agree to 1e-12 (relative to the largest sum) on the same points.
+
+    A wheel ships all three kernels and picks one at run time from CPUID, so each one must be correct on its own. An ISA
+    the CPU does not have raises, and that case is skipped: on a CI runner without AVX-512 only two are compared.
+    """
+    nmax = 60
+    prep = gsh.prepare(egm2008_nmax60, 0, nmax)
+    rng = np.random.default_rng(7)
+    lat = rng.uniform(-80.0, 80.0, 97)
+    lon = rng.uniform(0.0, 360.0, 97)
+    pts = gsh.Points.from_spherical(lat, lon, np.full(97, 6378137.0))
+
+    def run(isa):
+        opts = gsh.SynthOptions()
+        opts.isa = isa
+        return gsh.synth_points(prep, pts, grad, opts)
+
+    ref = run(gsh.Isa.Scalar)
+    compared = 0
+    for isa in (gsh.Isa.Avx2, gsh.Isa.Avx512):
+        try:
+            other = run(isa)
+        except RuntimeError:
+            continue
+        compared += 1
+        for k in range(len(ref.f)):
+            a, b = np.asarray(ref.f[k]), np.asarray(other.f[k])
+            np.testing.assert_allclose(b, a, rtol=0.0, atol=1e-12 * np.max(np.abs(a)))
+    if compared == 0:
+        pytest.skip("only the scalar kernel is available on this CPU")

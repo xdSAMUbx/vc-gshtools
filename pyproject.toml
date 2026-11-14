@@ -9,6 +9,29 @@ description = "Python bindings of GSH_Tools: spherical-harmonic synthesis of geo
 readme = "src/python/README.md"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Samuel Calderon" }]
+keywords = ["geodesy", "gravity", "geopotential", "spherical harmonics", "gravity field", "EGM2008", "geoid", "Legendre"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Physics",
+  "Topic :: Scientific/Engineering :: GIS",
+  "Programming Language :: C++",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+]
+
+[project.urls]
+Homepage = "https://github.com/xdSAMUbx/vc-gshtools"
+Repository = "https://github.com/xdSAMUbx/vc-gshtools"
+Issues = "https://github.com/xdSAMUbx/vc-gshtools/issues"
 
 [tool.scikit-build]
 minimum-version = "0.10"

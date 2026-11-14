@@ -1,9 +1,15 @@
 #include "legendre.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
+#include <string>
 #include <vector>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace gsh::legendre
 {
@@ -291,5 +297,112 @@ namespace gsh::legendre
         dP[idx_tri(n, m, nmax)] = v;
       }
     }
+  }
+
+  namespace
+  {
+    // Team size used when the caller passes threads = 0.
+    int default_team()
+    {
+#ifdef _OPENMP
+      return std::max(1, omp_get_max_threads());
+#else
+      return 1;
+#endif
+    }
+  }
+
+  Extracted extract(std::span<const double> lat_rad, const Coefs &c, const Selection &sel, int threads)
+  {
+    if (c.nmax < 0)
+      throw std::invalid_argument("extract: coefs are empty (call make_coefs first)");
+    const int cn = c.nmax;
+    const int snmax = sel.nmax < 0 ? cn : sel.nmax;
+    if (sel.nmin < 0 || sel.nmin > snmax || snmax > cn)
+      throw std::invalid_argument("extract: require 0 <= nmin <= nmax <= coefs.nmax (nmin=" + std::to_string(sel.nmin) +
+                                  ", nmax=" + std::to_string(snmax) + ", coefs.nmax=" + std::to_string(cn) + ")");
+    if (threads < 0)
+      throw std::invalid_argument("extract: threads must be >= 0 (0 = OpenMP default)");
+
+    // Orders: empty = all 0..nmax. Given orders are sorted, so the output order does not depend on the input order.
+    std::vector<int> orders = sel.orders;
+    if (orders.empty())
+    {
+      orders.resize(static_cast<std::size_t>(snmax) + 1);
+      std::iota(orders.begin(), orders.end(), 0);
+    }
+    else
+    {
+      std::sort(orders.begin(), orders.end());
+      for (const int m : orders)
+        if (m < 0 || m > snmax)
+          throw std::invalid_argument("extract: order m=" + std::to_string(m) + " outside 0..nmax=" + std::to_string(snmax));
+      if (const auto dup = std::adjacent_find(orders.begin(), orders.end()); dup != orders.end())
+        throw std::invalid_argument("extract: duplicate order m=" + std::to_string(*dup));
+    }
+
+    Extracted out;
+    out.count = 0;
+    for (const int m : orders)
+      out.count += snmax - std::max(m, sel.nmin) + 1;
+    const std::int64_t count = out.count;
+
+    // Output size check, before any allocation. Overflow-safe: np * count * per_point > limit is tested as a division.
+    const auto np = static_cast<std::ptrdiff_t>(lat_rad.size());
+    const std::int64_t per_point = sel.derivative ? 2 : 1;
+    if (np > 0 && count > 0 && static_cast<std::int64_t>(np) > extract_max_doubles / (count * per_point))
+      throw std::length_error("extract: output of " + std::to_string(np) + " points x " + std::to_string(count) +
+                              " columns x " + std::to_string(per_point) + " array(s) exceeds the limit of 2^31 doubles (16 GB). " +
+                              "Request fewer points or orders, a lower nmax, or derivative=false (memory = 8 * npoints * count bytes).");
+
+    // Column table: one entry per stored element, plus the packed index into the full triangle of degree cn.
+    std::vector<std::int64_t> src;
+    src.reserve(static_cast<std::size_t>(count));
+    out.n.reserve(static_cast<std::size_t>(count));
+    out.m.reserve(static_cast<std::size_t>(count));
+    for (const int m : orders)
+      for (int n = std::max(m, sel.nmin); n <= snmax; ++n)
+      {
+        out.n.push_back(n);
+        out.m.push_back(m);
+        src.push_back(idx_tri(n, m, cn));
+      }
+
+    const auto total = static_cast<std::size_t>(np) * static_cast<std::size_t>(count);
+    out.P.assign(total, 0.0);
+    if (sel.derivative)
+      out.dP.assign(total, 0.0);
+
+    const int team = threads > 0 ? threads : default_team();
+    const bool want_dp = sel.derivative;
+    double *const outP = out.P.data();
+    double *const outDP = out.dP.data();
+    const auto ucount = static_cast<std::size_t>(count);
+    const std::size_t nsrc = src.size();
+    const std::int64_t *const srcp = src.data();
+
+    // One buffer per thread (allocated once per call, reused for every point of that thread). Each point writes
+    // only its own row of the output, so there are no races and the result does not depend on the thread count.
+#pragma omp parallel num_threads(team)
+    {
+      AlignedVec<double> P(static_cast<std::size_t>(tri_size(cn)));
+      AlignedVec<double> dP(want_dp ? static_cast<std::size_t>(tri_size(cn)) : 0);
+#pragma omp for schedule(dynamic, 4)
+      for (std::ptrdiff_t i = 0; i < np; ++i)
+      {
+        const double phi = lat_rad[static_cast<std::size_t>(i)];
+        compute(std::sin(phi), std::cos(phi), c, std::span<double>(P.data(), P.size()));
+        const auto row = static_cast<std::size_t>(i) * ucount;
+        for (std::size_t k = 0; k < nsrc; ++k)
+          outP[row + k] = P[static_cast<std::size_t>(srcp[k])];
+        if (want_dp)
+        {
+          dphi(cn, std::span<const double>(P.data(), P.size()), std::span<double>(dP.data(), dP.size()));
+          for (std::size_t k = 0; k < nsrc; ++k)
+            outDP[row + k] = dP[static_cast<std::size_t>(srcp[k])];
+        }
+      }
+    }
+    return out;
   }
 }

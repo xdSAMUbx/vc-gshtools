@@ -24,7 +24,9 @@
 //   P̄_00 = 1; P̄_mm = sqrt((2m+1)/(2m)) u P̄_{m-1,m-1} (m >= 2), P̄_11 = sqrt(3) u;
 //   P̄_{m+1,m} = sqrt(2m+3) t P̄_mm; P̄_nm = a_nm t P̄_{n-1,m} - b_nm P̄_{n-2,m} (n >= m+2).
 #pragma once
+#include <cstdint>
 #include <span>
+#include <vector>
 #include "core.hpp"
 
 namespace gsh::legendre
@@ -80,4 +82,44 @@ namespace gsh::legendre
   // poles and is deliberately not used. Parallel over m (OpenMP) when nmax > 256.
   // Throws std::invalid_argument if either buffer holds fewer than tri_size(nmax) elements.
   void dphi(int nmax, std::span<const double> P, std::span<double> dP);
+
+  // Batched, filtered extraction for many points (see extract()). Each point's full triangle is computed in a
+  // per-thread buffer and only the requested orders m and degrees n are copied out.
+  //
+  // Selection:
+  //   orders     list of orders m. Empty means all m = 0..nmax. Values must be unique and lie in 0..nmax; they are
+  //              stored in ascending order regardless of the order given.
+  //   nmin, nmax degree range, 0 <= nmin <= nmax <= coefs.nmax. nmax = -1 means coefs.nmax.
+  //   derivative also return dP/dφ (dphi() of the same triangle).
+  // For order m the stored degrees are n = max(m, nmin) .. nmax, so an order m < nmin starts at nmin.
+  struct Selection
+  {
+    std::vector<int> orders;
+    int nmin = 0;
+    int nmax = -1;
+    bool derivative = false;
+  };
+
+  // Result of extract(). Column k of P (and dP) holds the element (n[k], m[k]) of every point.
+  //   n, m    one entry per stored column element, in the output order (ascending m, then ascending n)
+  //   P, dP   row-major [npoints][count]: P[i * count + k]. dP is empty unless Selection::derivative is set.
+  //   count   number of columns, count = sum over the selected m of nmax - max(m, nmin) + 1
+  struct Extracted
+  {
+    std::vector<int> n, m;
+    std::vector<double> P, dP;
+    std::int64_t count = 0;
+  };
+
+  // Largest output that extract() accepts, in doubles (P plus dP): 2^31 doubles, about 16 GB. extract() throws
+  // std::length_error above this limit; the message says how to shrink the request.
+  inline constexpr std::int64_t extract_max_doubles = std::int64_t{1} << 31;
+
+  // Evaluates the triangle of every point and returns the selected entries. lat_rad holds GEOCENTRIC latitudes in
+  // radians. The triangle of each point is computed with compute() (sfc up to nmax 1800, msfc above) into a buffer
+  // owned by one thread, so memory is O(tri_size(coefs.nmax)) per thread, not per point.
+  // threads = 0 uses the OpenMP default; threads > 0 sets the team size. The result is bit-identical for any thread count.
+  // Throws std::invalid_argument for an invalid selection or a negative thread count, and std::length_error when the
+  // output would exceed extract_max_doubles.
+  Extracted extract(std::span<const double> lat_rad, const Coefs &c, const Selection &sel, int threads = 0);
 }

@@ -1,4 +1,5 @@
 #include "functionals.hpp"
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <limits>
@@ -158,6 +159,13 @@ namespace gsh
       t.zz = k3 * S[F_SRR];
       return t;
     }
+
+    // Relative cost of one synthesis pass per point, by gradient order (grad 0 = 1). Only used to decide whether fusing the
+    // model and disturbing passes pays off.
+    double pass_cost(int grad) { return grad == 0 ? 1.0 : (grad == 1 ? 3.5 : 6.0); }
+    // Cost of the zonal normal-field pass (at most 231 terms of degree <= 20, against about nmax^2/2 terms for a full pass),
+    // about 1e-4 of a full pass; rounded up to 0.01 to stay conservative.
+    constexpr double kZonalPassCost = 0.01;
   }
 
   // Evaluates the requested functionals. The structure is: (1) decide the passes from the requested outputs,
@@ -218,17 +226,69 @@ namespace gsh
     const Model dist = (gd >= 0 || need_ell) ? disturbing_model(model, ell) : Model{};
     RawFields rm, rd;
 
+    // Fused path: model = dist + zonal, coefficient by coefficient (normal_zonal_model), and synthesis is linear. So one pass on
+    // the disturbing coefficients at grad max(gm, gd) gives rd, and the model sums are rm = rd + Z, where Z is the synthesis of
+    // the zonal model (degree <= 20, grad gm). Only the sums are added, never subtracted, so T (from rd) keeps its accuracy.
+    // Used when both sums are needed and the cost model says it is cheaper; otherwise the two full passes below run.
+    const bool fuse = req.fuse_model_and_disturbing && gm >= 0 && gd >= 0 && nmax >= 2 &&
+                      pass_cost(std::max(gm, gd)) + kZonalPassCost < pass_cost(gm) + pass_cost(gd);
+
     auto t0 = Clock::now();
-    if (gm >= 0)
+    if (fuse)
     {
-      rm = synth_points(prepare(model, req.nmin, nmax, rec), pts, gm, req.synth);
+      rd = synth_points(prepare(dist, req.nmin, nmax, rec), pts, std::max(gm, gd), req.synth);
+      res.timing_s["disturbing_synthesis"] = secs(t0);
+
+      t0 = Clock::now();
+      // The zonal model has degree min(20, nmax). If nmin is above it, all its terms are below nmin and Z = 0.
+      const int nz = std::min(20, nmax);
+      const bool zonal_terms = req.nmin <= nz;
+      RawFields z;
+      if (zonal_terms)
+      {
+        const Model zonal = normal_zonal_model(model, ell);
+        const auto rec_z = nz == nmax ? rec : make_recurrence(nz);
+        z = synth_points(prepare(zonal, req.nmin, nz, rec_z), pts, gm, req.synth);
+      }
+      rm.grad = gm;
+      rm.f.assign(static_cast<std::size_t>(fields_for_grad(gm)), AlignedVec<double>(static_cast<std::size_t>(np)));
+      for (std::size_t k = 0; k < rm.f.size(); ++k)
+      {
+        const double *zk = zonal_terms ? z.f[k].data() : nullptr;
+#pragma omp parallel for schedule(static)
+        for (std::int64_t i = 0; i < np; ++i)
+          rm.f[k][i] = zk ? rd.f[k][i] + zk[i] : rd.f[k][i];
+      }
+      // At polar points the model value S0 (grad 0) is taken from the model directly, as in the two-pass path. Other model
+      // fields at polar points are replaced by reference_point() below.
+      if (gm == 0 && !polar.empty())
+      {
+        Points sub;
+        for (std::int64_t id : polar)
+        {
+          sub.lat.push_back(pts.lat[id]);
+          sub.lon.push_back(pts.lon[id]);
+          sub.r.push_back(pts.r[id]);
+        }
+        const RawFields ms = synth_points(prepare(model, req.nmin, nmax, rec), sub, 0, req.synth);
+        for (std::size_t j = 0; j < polar.size(); ++j)
+          rm.f[F_S0][polar[j]] = ms.f[F_S0][j];
+      }
       res.timing_s["model_synthesis"] = secs(t0);
     }
-    t0 = Clock::now();
-    if (gd >= 0)
+    else
     {
-      rd = synth_points(prepare(dist, req.nmin, nmax, rec), pts, gd, req.synth);
-      res.timing_s["disturbing_synthesis"] = secs(t0);
+      if (gm >= 0)
+      {
+        rm = synth_points(prepare(model, req.nmin, nmax, rec), pts, gm, req.synth);
+        res.timing_s["model_synthesis"] = secs(t0);
+      }
+      t0 = Clock::now();
+      if (gd >= 0)
+      {
+        rd = synth_points(prepare(dist, req.nmin, nmax, rec), pts, gd, req.synth);
+        res.timing_s["disturbing_synthesis"] = secs(t0);
+      }
     }
 
     // Near the poles, the column-wise dP and ddP (1/cos φ form) lose accuracy. For those points the raw sums are

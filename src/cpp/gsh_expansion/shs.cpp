@@ -7,6 +7,7 @@
 #include <numeric>
 #include <omp.h>
 #include <stdexcept>
+#include <utility>
 #include "kernels.hpp"
 #if defined(_MSC_VER)
 #include <intrin.h>
@@ -19,12 +20,13 @@ namespace gsh
   {
     auto rec = std::make_shared<Recurrence>();
     rec->nmax = nmax;
-    const auto c = legendre::make_coefs(nmax);
+    auto c = legendre::make_coefs(nmax);
     const auto size = tri_size(nmax);
     rec->ab.resize(2 * size);
-    rec->f = c.f;
-    rec->d = c.d;
-#pragma omp parallel for
+    // Moved, not copied: c is local and only a and b are read below. Same values, no serial copy of the triangles.
+    rec->f = std::move(c.f);
+    rec->d = std::move(c.d);
+#pragma omp parallel for if (size > 100000)
     for (std::int64_t i = 0; i < size; ++i)
     {
       rec->ab[2 * i] = c.a[i];
@@ -52,7 +54,7 @@ namespace gsh
     p.R = model.R;
     p.rec = rec ? std::move(rec) : make_recurrence(nmax);
     p.cs.resize(2 * tri_size(nmax));
-#pragma omp parallel for schedule(dynamic, 16)
+#pragma omp parallel for schedule(dynamic, 16) if (tri_size(nmax) > 100000)
     for (int m = 0; m <= nmax; ++m)
     {
       const auto dst = col_offset(m, nmax), src = col_offset(m, model.nmax);
@@ -68,22 +70,25 @@ namespace gsh
 
   namespace
   {
-    // AVX-512 is usable only if the CPU reports AVX512F, DQ and VL (CPUID leaf 7) and the OS saves the
-    // opmask and ZMM state (XCR0 bits 1, 2, 5, 6, 7 = mask 0xE6, read with XGETBV).
+    // AVX-512 is usable only if the CPU reports AVX512F, DQ, VL and BW (CPUID leaf 7) and the OS saves the
+    // opmask and ZMM state (XCR0 bits 1, 2, 5, 6, 7 = mask 0xE6, read with XGETBV). The list matches the instruction
+    // sets the AVX-512 kernel is compiled with (/arch:AVX512 or -mavx512f/dq/vl/bw), so a CPU that passes this check
+    // can run every instruction in kernels_avx512.cpp.
     bool cpu_has_avx512()
     {
 #if defined(_MSC_VER)
       int info[4];
       __cpuidex(info, 7, 0);
-      const bool f = (info[1] >> 16) & 1, dq = (info[1] >> 17) & 1, vl = (info[1] >> 31) & 1;
+      const bool f = (info[1] >> 16) & 1, dq = (info[1] >> 17) & 1, bw = (info[1] >> 30) & 1, vl = (info[1] >> 31) & 1;
       __cpuid(info, 1);
       const bool osxsave = (info[2] >> 27) & 1;
       if (!osxsave)
         return false;
       const unsigned long long xcr = _xgetbv(0);
-      return f && dq && vl && (xcr & 0xE6) == 0xE6;
+      return f && dq && vl && bw && (xcr & 0xE6) == 0xE6;
 #else
-      return __builtin_cpu_supports("avx512f") && __builtin_cpu_supports("avx512dq");
+      return __builtin_cpu_supports("avx512f") && __builtin_cpu_supports("avx512dq") &&
+             __builtin_cpu_supports("avx512vl") && __builtin_cpu_supports("avx512bw");
 #endif
     }
     // AVX2 (CPUID leaf 7, EBX bit 5) and FMA (CPUID leaf 1, ECX bit 12), plus OS support for YMM state (XCR0 mask 6).

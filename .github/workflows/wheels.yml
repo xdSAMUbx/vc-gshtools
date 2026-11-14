@@ -1,6 +1,8 @@
 name: wheels
 
-# Builds the gshtools wheels (Windows) and the source distribution, and publishes them to PyPI.
+# Builds the gshtools wheels (precompiled binaries only, no source distribution) and publishes them to PyPI.
+# Two caches keep a release from rebuilding everything: the vcpkg binary cache (Eigen) and sccache (compiled objects of
+# the library, identical for every Python version).
 # Publishing uses PyPI Trusted Publishing (no token): project gshtools, workflow wheels.yml, environment pypi.
 # It only runs for a version tag (v*); a manual run (workflow_dispatch) builds and tests but never publishes.
 
@@ -19,6 +21,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg-binary-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ runner.os }}-
+
+      - name: Set up sccache (compiler cache)
+        uses: mozilla-actions/sccache-action@v0.0.9
+
       - name: Load the MSVC environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -27,36 +39,68 @@ jobs:
       - name: Build and test the wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
+          VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-binary-cache
+          SCCACHE_GHA_ENABLED: "true"
+          SCCACHE_IGNORE_SERVER_IO_ERROR: "1"   # a cache outage must not fail the build
           CIBW_BUILD: "cp310-win_amd64 cp311-win_amd64 cp312-win_amd64 cp313-win_amd64"
           CIBW_ENVIRONMENT: >-
             CMAKE_GENERATOR=Ninja
-            CMAKE_ARGS="-DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows"
+            CMAKE_ARGS="-DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows"
           CIBW_TEST_REQUIRES: pytest numpy
           CIBW_TEST_COMMAND: python -m pytest {project}/tests/py -q
+
+      - name: Show cache statistics
+        if: always()
+        shell: pwsh
+        run: sccache --show-stats
 
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-windows
           path: wheelhouse/*.whl
 
-  sdist:
-    name: source distribution
+  wheels-linux:
+    name: wheels (Linux)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      # cibuildwheel builds inside a manylinux container; ccache keeps its cache in a mounted directory.
+      - name: Cache compiled objects (ccache)
+        uses: actions/cache@v4
         with:
-          python-version: "3.12"
-      - run: python -m pip install build
-      - run: python -m build --sdist
+          path: .ccache
+          key: ccache-linux-${{ hashFiles('src/cpp/**', 'src/python/**', 'CMakeLists.txt') }}
+          restore-keys: ccache-linux-
+
+      - name: Build and test the wheels
+        uses: pypa/cibuildwheel@v2.22.0
+        env:
+          CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64"
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          # Eigen (header-only) and ccache are the only extra build tools; libgomp is vendored by auditwheel.
+          CIBW_BEFORE_ALL_LINUX: >-
+            yum install -y ccache &&
+            curl -sSL https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz | tar xz -C /tmp &&
+            /opt/python/cp312-cp312/bin/pip install cmake ninja &&
+            /opt/python/cp312-cp312/bin/cmake -S /tmp/eigen-3.4.0 -B /tmp/eigen-build -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF &&
+            /opt/python/cp312-cp312/bin/cmake --install /tmp/eigen-build
+          CIBW_ENVIRONMENT_LINUX: >-
+            CMAKE_GENERATOR=Ninja
+            CMAKE_PREFIX_PATH=/usr/local
+            CMAKE_ARGS="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+            CCACHE_DIR=/project/.ccache
+          CIBW_TEST_REQUIRES: pytest numpy
+          CIBW_TEST_COMMAND: python -m pytest {project}/tests/py -q
+
       - uses: actions/upload-artifact@v4
         with:
-          name: sdist
-          path: dist/*.tar.gz
+          name: wheels-linux
+          path: wheelhouse/*.whl
 
   publish:
     name: publish to PyPI
-    needs: [wheels-windows, sdist]
+    needs: [wheels-windows, wheels-linux]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment: pypi

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 #include <vector>
 #include "legendre.hpp"
 using namespace gsh;
@@ -329,4 +330,150 @@ TEST(Legendre, SfcUnderflowsToZeroInsteadOfBlowingUp)
     for (const double v : P)
       ASSERT_LE(std::fabs(v), bound) << "latitude " << lat_deg;
   }
+}
+
+// Batched extraction (legendre::extract). Every value is compared with compute() or dphi() on the full triangle,
+// so the equality is exact, not a tolerance.
+namespace
+{
+  // Full triangle of one geocentric latitude, computed exactly as extract() does.
+  std::vector<double> full_triangle(double phi, const Coefs &c)
+  {
+    std::vector<double> P(tri_size(c.nmax));
+    legendre::compute(std::sin(phi), std::cos(phi), c, P);
+    return P;
+  }
+}
+
+TEST(LegendreExtract, MatchesComputeBitForBit)
+{
+  const int nmax = 60;
+  const auto c = legendre::make_coefs(nmax);
+  const std::vector<double> lats = {0.0, PI / 2, -PI / 2, PI / 2 - 1e-9, -(PI / 2 - 1e-9), 0.7, -1.2};
+  const legendre::Extracted all = legendre::extract(lats, c, legendre::Selection{});
+  const std::int64_t count = tri_size(nmax);
+  ASSERT_EQ(all.count, count);
+  ASSERT_EQ(all.n.size(), static_cast<std::size_t>(count));
+  ASSERT_EQ(all.P.size(), static_cast<std::size_t>(count) * lats.size());
+  EXPECT_TRUE(all.dP.empty());
+  for (std::size_t i = 0; i < lats.size(); ++i)
+  {
+    const auto full = full_triangle(lats[i], c);
+    for (std::int64_t k = 0; k < count; ++k)
+      ASSERT_EQ(all.P[i * count + k], full[idx_tri(all.n[k], all.m[k], nmax)]) << "lat " << lats[i] << " n " << all.n[k] << " m " << all.m[k];
+  }
+
+  // Subset of orders with nmin > 0: order m stores degrees max(m, nmin)..nmax.
+  legendre::Selection sel;
+  sel.orders = {17, 0, 60, 3}; // unsorted on purpose: output is in ascending m
+  sel.nmin = 5;
+  const legendre::Extracted sub = legendre::extract(lats, c, sel);
+  EXPECT_EQ(sub.count, (60 - 5 + 1) + (60 - 5 + 1) + (60 - 17 + 1) + (60 - 60 + 1));
+  ASSERT_EQ(sub.n.size(), static_cast<std::size_t>(sub.count));
+  for (std::size_t k = 1; k < sub.m.size(); ++k)
+    ASSERT_LE(sub.m[k - 1], sub.m[k]);
+  for (std::size_t k = 0; k < sub.m.size(); ++k)
+  {
+    ASSERT_GE(sub.n[k], std::max(sub.m[k], 5));
+    ASSERT_LE(sub.n[k], nmax);
+  }
+  for (std::size_t i = 0; i < lats.size(); ++i)
+  {
+    const auto full = full_triangle(lats[i], c);
+    for (std::int64_t k = 0; k < sub.count; ++k)
+      ASSERT_EQ(sub.P[i * sub.count + k], full[idx_tri(sub.n[k], sub.m[k], nmax)]) << "lat " << lats[i];
+  }
+}
+
+TEST(LegendreExtract, DerivativeEqualsDphi)
+{
+  const int nmax = 60;
+  const auto c = legendre::make_coefs(nmax);
+  const std::vector<double> lats = {0.0, PI / 2, -PI / 2, 0.3, -0.9};
+  legendre::Selection sel;
+  sel.derivative = true;
+  sel.orders = {0, 1, 2, 30};
+  sel.nmin = 3;
+  const legendre::Extracted ex = legendre::extract(lats, c, sel);
+  ASSERT_EQ(ex.dP.size(), ex.P.size());
+  for (std::size_t i = 0; i < lats.size(); ++i)
+  {
+    const auto P = full_triangle(lats[i], c);
+    std::vector<double> dP(P.size());
+    legendre::dphi(nmax, P, dP);
+    for (std::int64_t k = 0; k < ex.count; ++k)
+      ASSERT_EQ(ex.dP[i * ex.count + k], dP[idx_tri(ex.n[k], ex.m[k], nmax)]) << "lat " << lats[i];
+  }
+}
+
+TEST(LegendreExtract, ThreadCountDoesNotChangeResult)
+{
+  const int nmax = 120;
+  const auto c = legendre::make_coefs(nmax);
+  std::vector<double> lats;
+  for (int i = 0; i < 50; ++i)
+    lats.push_back(-PI / 2 + PI * (i + 0.5) / 50.0);
+  legendre::Selection sel;
+  sel.derivative = true;
+  sel.orders = {0, 1, 7, 64, 120};
+  sel.nmin = 2;
+  const auto one = legendre::extract(lats, c, sel, 1);
+  const auto four = legendre::extract(lats, c, sel, 4);
+  EXPECT_EQ(one.P, four.P);   // bit-identical: the vectors compare with ==
+  EXPECT_EQ(one.dP, four.dP);
+  EXPECT_EQ(one.n, four.n);
+  EXPECT_EQ(one.m, four.m);
+}
+
+TEST(LegendreExtract, MsfcPathAtDegree2190)
+{
+  const int nmax = 2190;
+  const auto c = legendre::make_coefs(nmax);
+  const std::vector<double> lats = {0.2, -0.6, 1.1};
+  legendre::Selection sel;
+  sel.orders = {0, 1, 100, 2190};
+  const auto ex = legendre::extract(lats, c, sel);
+  ASSERT_EQ(ex.count, (nmax - 0 + 1) + (nmax - 1 + 1) + (nmax - 100 + 1) + 1);
+  for (std::size_t i = 0; i < lats.size(); ++i)
+  {
+    const auto full = full_triangle(lats[i], c);
+    for (std::int64_t k = 0; k < ex.count; ++k)
+      ASSERT_EQ(ex.P[i * ex.count + k], full[idx_tri(ex.n[k], ex.m[k], nmax)]) << "lat " << lats[i];
+  }
+}
+
+TEST(LegendreExtract, InvalidSelectionsThrow)
+{
+  const auto c = legendre::make_coefs(20);
+  const std::vector<double> lats = {0.1};
+
+  legendre::Selection s;
+  s.orders = {-1};
+  EXPECT_THROW(legendre::extract(lats, c, s), std::invalid_argument);
+  s.orders = {21};
+  EXPECT_THROW(legendre::extract(lats, c, s), std::invalid_argument);
+  s.orders = {3, 5, 3};
+  EXPECT_THROW(legendre::extract(lats, c, s), std::invalid_argument);
+
+  legendre::Selection r;
+  r.nmin = 10;
+  r.nmax = 5;
+  EXPECT_THROW(legendre::extract(lats, c, r), std::invalid_argument);
+  legendre::Selection above;
+  above.nmax = 21; // larger than coefs.nmax = 20
+  EXPECT_THROW(legendre::extract(lats, c, above), std::invalid_argument);
+  legendre::Selection neg;
+  neg.nmin = -1;
+  EXPECT_THROW(legendre::extract(lats, c, neg), std::invalid_argument);
+  EXPECT_THROW(legendre::extract(lats, c, legendre::Selection{}, -1), std::invalid_argument);
+  EXPECT_THROW(legendre::extract(lats, legendre::Coefs{}, legendre::Selection{}), std::invalid_argument);
+
+  // Output size limit: 600000 points with derivative need 2 * 600000 * tri_size(60) doubles, above 2^31.
+  // The check runs before any allocation, so the call throws at once.
+  const std::vector<double> many(600000, 0.1);
+  legendre::Selection big;
+  big.derivative = true;
+  const auto c60 = legendre::make_coefs(60);
+  EXPECT_THROW(legendre::extract(many, c60, big), std::length_error);
+  EXPECT_EQ(legendre::extract_max_doubles, std::int64_t{1} << 31);
 }

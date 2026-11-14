@@ -19,9 +19,7 @@ namespace gsh
       std::FILE *f = std::fopen(path.c_str(), "rb");
       if (!f)
         throw std::runtime_error("Cannot open: " + path);
-      _fseeki64(f, 0, SEEK_END);
-      const long long size = _ftelli64(f);
-      _fseeki64(f, 0, SEEK_SET);
+      const long long size = gsh::detail::stream_size(f);
       std::string buf(static_cast<std::size_t>(size), '\0');
       const std::size_t got = std::fread(buf.data(), 1, buf.size(), f);
       std::fclose(f);

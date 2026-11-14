@@ -1,0 +1,11 @@
+model XGM2019e_2159  nmax=2190  tide_system=tide_free  points=509 (colorado)  recurrence=fast  repeat=8
+load_s=0.520
+repeat 1/8: wall=1.0618 s  cpu=2.1719 s
+repeat 2/8: wall=1.1754 s  cpu=1.0469 s
+repeat 3/8: wall=1.1570 s  cpu=1.0312 s
+repeat 4/8: wall=1.0513 s  cpu=1.0156 s
+repeat 5/8: wall=1.0582 s  cpu=1.0625 s
+repeat 6/8: wall=1.0702 s  cpu=1.0000 s
+repeat 7/8: wall=1.0898 s  cpu=1.0156 s
+repeat 8/8: wall=1.0454 s  cpu=0.9844 s
+wrote <repo>/benchmark/shs/results/h1h2/out_fuse1_t1.csv (509 points) [V, T, dg]

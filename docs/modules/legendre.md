@@ -437,3 +437,56 @@ int main()
   std::printf("%.7f %.7f %.7f\n", P[gsh::idx_tri(1, 0, nmax)], dP[gsh::idx_tri(1, 0, nmax)], ddP[gsh::idx_tri(1, 0, nmax)]);
 }
 ```
+
+## Batched extraction for many points
+
+`compute()` returns the whole triangle for one point. At degree 5540 one triangle is about 123 MB, so the triangles of many points cannot be stored. `extract()` (C++) and `legendre_points()` (Python) compute each point's triangle in a buffer owned by one thread, reuse that buffer for every point of the thread, and copy out only the requested orders `m` and degrees `n`.
+
+**Memory of the result.** Let `count` be the number of stored columns:
+
+$$
+count = \sum_{m \in \text{orders}} \left(nmax - \max(m, nmin) + 1\right)
+$$
+
+Then the result takes `bytes = 8 * npoints * count` for `P`, and twice that with `derivative`. Orders are stored in ascending `m`. Output larger than 2^31 doubles (16 GB) is refused with `std::length_error` (C++) or `ValueError` (Python); the message says how to reduce the request. The limit is the constant `extract_max_doubles` in `legendre.hpp`.
+
+**Selection rules.** `orders` must be unique and lie in `0..nmax`; empty means all orders. `0 <= nmin <= nmax <= coefs.nmax`, and `nmax = -1` means `coefs.nmax`. Latitudes are geocentric, in radians. The result is bit-identical for any thread count.
+
+**C++ example**
+
+```cpp
+#include <cstdio>
+#include <vector>
+#include "legendre.hpp"
+int main()
+{
+  const auto c = gsh::legendre::make_coefs(5540);        // build once per degree
+  const std::vector<double> lat = {0.0, 0.5, -1.2};      // geocentric latitudes [rad]
+  gsh::legendre::Selection sel;
+  sel.orders = {0, 1, 100};                              // m = 0, 1 and 100
+  sel.nmin = 2;                                          // degrees max(m, 2)..5540
+  sel.derivative = true;                                 // also dP/dphi
+  const auto ex = gsh::legendre::extract(lat, c, sel, 0); // threads = 0: OpenMP default
+  // count = (5540-2+1) + (5540-2+1) + (5540-100+1) = 16519
+  std::printf("count %lld\n", static_cast<long long>(ex.count));
+  std::printf("P(point 1, n=%d, m=%d) = %.12e\n", ex.n[0], ex.m[0], ex.P[1 * ex.count + 0]);
+  std::printf("dP(point 1, n=%d, m=%d) = %.12e\n", ex.n[0], ex.m[0], ex.dP[1 * ex.count + 0]);
+}
+```
+
+**Python example**
+
+```python
+import math
+import numpy as np
+import gshtools as gsh
+
+c = gsh.legendre.make_coefs(5540)                  # optional: reuse across calls
+lat = np.radians([0.0, 30.0, -70.0])               # geocentric latitudes [rad]
+r = gsh.legendre_points(lat, 5540, orders=[0, 1, 100], nmin=2, derivative=True, coefs=c)
+print(r.P.shape)                                   # (3, count)
+print(r.n[:3], r.m[:3])                            # int32 arrays of length count
+print(r.dP.shape)                                  # same shape as P; None without derivative=True
+```
+
+The returned object is a `LegendrePoints` with the attributes `P`, `dP`, `n` and `m`. The values equal `compute()` and `dphi()` on the full triangle, entry by entry.

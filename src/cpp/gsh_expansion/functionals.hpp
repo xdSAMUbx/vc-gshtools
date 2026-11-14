@@ -65,6 +65,9 @@ namespace gsh
     // the poles (see benchmark/meridian).
     double pole_cos_threshold = 5e-3;
     SynthOptions synth;                             // threads, ISA and kernel switches
+    // When true (default), the model sums are recovered from one pass on the disturbing coefficients plus a small pass on the
+    // zonal normal-field model (see compute_functionals). false forces the two full passes (for comparison).
+    bool fuse_model_and_disturbing = true;
   };
 
   struct FunctionalResult

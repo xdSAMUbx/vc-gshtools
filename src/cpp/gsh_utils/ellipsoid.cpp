@@ -1,6 +1,7 @@
 // ellipsoid.cpp: reference ellipsoid, zonal coefficients, normal gravity series and disturbing
 // coefficients. See ellipsoid.hpp for units and sources.
 #include "ellipsoid.hpp"
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
@@ -110,21 +111,38 @@ namespace gsh
     return (a * ge * c * c + b * gp * s * s) / std::sqrt(a * a * c * c + b * b * s * s);
   }
 
+  // Zonal terms removed from the model, delta_k = C^Ell_{2k,0} (GM_Ell/GM)(a_Ell/R)^(2k), k = 0..10, 2k <= min(20, nmax).
+  // This is the only place where delta_k is computed; disturbing_model subtracts it and compute_functionals uses it as
+  // the model it adds back. `sn` carries (GM_Ell/GM)(a/R)^(2k) between steps.
+  Model normal_zonal_model(const Model &model, const Ellipsoid &ell)
+  {
+    const int nz = std::min(20, model.nmax);
+    Model z = Model::zeros(model.GM, model.R, nz);
+    z.file_nmax = model.file_nmax;
+    z.name = model.name;
+    z.norm = model.norm;
+    z.tide_system = model.tide_system;
+    const double ratio = ell.GM / model.GM;
+    const double scale = ell.a / model.R;
+    double sn = ratio; // (GM_ell/GM) (a/R)^n
+    for (int k = 0; k <= 10 && 2 * k <= nz; ++k)
+    {
+      z.C[idx_tri(2 * k, 0, nz)] = ell.zonal(k) * sn;
+      sn *= scale * scale;
+    }
+    return z;
+  }
+
   // Disturbing coefficients: the ellipsoidal zonal terms are scaled to the GM and R of the model,
   //   dC_{2k,0} = C_{2k,0} - C^Ell_{2k,0} (GM_Ell / GM) (a_Ell / R)^(2k).
-  // The loop runs over k = 0..10 and 2k <= nmax; `sn` carries (GM_Ell/GM)(a/R)^(2k) between steps.
+  // The loop runs over k = 0..10 and 2k <= nmax (the subtracted terms come from normal_zonal_model).
   // Formula: Bucha and Janák (2019).
   Model disturbing_model(const Model &model, const Ellipsoid &ell)
   {
     Model d = model.truncated(model.nmax);
-    const double ratio = ell.GM / model.GM;
-    const double scale = ell.a / model.R;
-    double sn = ratio; // (GM_ell/GM) (a/R)^n
+    const Model z = normal_zonal_model(model, ell);
     for (int k = 0; k <= 10 && 2 * k <= model.nmax; ++k)
-    {
-      d.C[idx_tri(2 * k, 0, model.nmax)] -= ell.zonal(k) * sn;
-      sn *= scale * scale;
-    }
+      d.C[idx_tri(2 * k, 0, model.nmax)] -= z.C[idx_tri(2 * k, 0, z.nmax)];
     return d;
   }
 }

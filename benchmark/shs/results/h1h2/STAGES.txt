@@ -1,0 +1,9 @@
+ab started 2026-11-14T11:10:45
+[11:10:50] colorado fuse=1 threads=1
+[11:10:59] colorado fuse=1 threads=6
+[11:11:02] colorado fuse=1 threads=12
+[11:11:04] colorado fuse=0 threads=1
+[11:11:16] colorado fuse=0 threads=6
+[11:11:20] colorado fuse=0 threads=12
+[11:11:22] aero5540 2013 pts A/B
+ab finished 2026-11-14T11:15:14

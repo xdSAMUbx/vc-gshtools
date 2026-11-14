@@ -24,6 +24,7 @@ add_library(gsh STATIC
   gsh_expansion/errors.cpp
   gsh_expansion/error_report.cpp
 )
+set_target_properties(gsh PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(gsh
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gsh_utils
          ${CMAKE_CURRENT_SOURCE_DIR}/gsh_legendre
@@ -39,9 +40,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   target_compile_options(gsh PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:Release>>:/O2 /Oi /Ob3 /fp:precise>)
   set_source_files_properties(gsh_legendre/kernels/kernels_avx2.cpp PROPERTIES COMPILE_OPTIONS "/arch:AVX2")
   set_source_files_properties(gsh_legendre/kernels/kernels_avx512.cpp PROPERTIES COMPILE_OPTIONS "/arch:AVX512")
-else() # clang-cl
+elseif (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC") # clang-cl
   target_compile_options(gsh PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/utf-8 /EHsc>)
   target_compile_options(gsh PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:Release>>:/O2 /Oi>)
+  set_source_files_properties(gsh_legendre/kernels/kernels_avx2.cpp PROPERTIES COMPILE_OPTIONS "-mavx2;-mfma")
+  set_source_files_properties(gsh_legendre/kernels/kernels_avx512.cpp PROPERTIES COMPILE_OPTIONS "-mavx512f;-mavx512dq;-mavx512vl;-mavx512bw;-mfma;-mprefer-vector-width=512")
+else() # GCC or Clang with the GNU frontend (Linux): GNU-style per-file ISA flags only
   set_source_files_properties(gsh_legendre/kernels/kernels_avx2.cpp PROPERTIES COMPILE_OPTIONS "-mavx2;-mfma")
   set_source_files_properties(gsh_legendre/kernels/kernels_avx512.cpp PROPERTIES COMPILE_OPTIONS "-mavx512f;-mavx512dq;-mavx512vl;-mavx512bw;-mfma;-mprefer-vector-width=512")
 endif()

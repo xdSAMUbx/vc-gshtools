@@ -20,6 +20,7 @@ PYBIND11_MODULE(_core, m)
 
   py::module_ legendre = m.def_submodule("legendre", "Fully normalised associated Legendre functions (radians).");
   gshpy::bind_legendre(legendre);
+  gshpy::bind_legendre_points(m);
 
   gshpy::bind_functionals(m);
   gshpy::bind_synthesis(m);
